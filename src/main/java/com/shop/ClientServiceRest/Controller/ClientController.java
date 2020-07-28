@@ -34,8 +34,9 @@ public class ClientController {
                                                       @RequestParam("size") int size) {
         logger.info("Called listOfClients method");
         Pageable pageable = PageRequest.of(page, size, Sort.by("id"));
+        List<Client> allClients = clientService.findAll(pageable).getContent();
 
-        return new ResponseEntity<>(clientService.findAll(pageable).getContent(), HttpStatus.OK);
+        return new ResponseEntity<>(allClients, HttpStatus.OK);
     }
 
     @GetMapping("/{id}")
@@ -46,9 +47,36 @@ public class ClientController {
             Client client = clientService.findById(id);
             return new ResponseEntity<>(client, HttpStatus.OK);
         } catch (NoSuchElementException ex) {
+            logger.warn("Client with id " + id + " not found");
             logger.error(ex.toString());
             return new ResponseEntity<>(null, HttpStatus.NOT_FOUND);
         }
+    }
+
+    @GetMapping("/byLogin/{login}")
+    public ResponseEntity<Client> clientByLogin(@PathVariable("login") String login) {
+        logger.info("Called clientByLogin method");
+
+        Client client = clientService.findByLogin(login);
+        if (client == null) {
+            logger.warn("Client with login - " + login + " not found");
+            return new ResponseEntity<>(null, HttpStatus.NOT_FOUND);
+        }
+
+        return new ResponseEntity<>(client, HttpStatus.OK);
+    }
+
+    @GetMapping("/byConfirmCode/{code}")
+    public ResponseEntity<Client> clientByConfirmCode(@PathVariable("code") String code) {
+        logger.info("Called clientByConfirmCode method");
+
+        Client client = clientService.findByConfirmationCode(code);
+        if (client == null) {
+            logger.warn("Client with confirmation code - " + code + " not found");
+            return new ResponseEntity<>(null, HttpStatus.NOT_FOUND);
+        }
+
+        return new ResponseEntity<>(client, HttpStatus.OK);
     }
 
     @PutMapping("/{id}")
@@ -63,6 +91,11 @@ public class ClientController {
         }
 
         Client persistentClient = clientService.findById(id);
+        if (persistentClient == null) {
+            logger.warn("Client with id - " + id + " not found");
+            return new ResponseEntity<>(null, HttpStatus.NOT_FOUND);
+        }
+
         BeanUtils.copyProperties(client, persistentClient, "id");
         clientService.save(persistentClient);
         return new ResponseEntity<>(persistentClient, HttpStatus.OK);
@@ -81,6 +114,10 @@ public class ClientController {
         logger.info("Called deleteClient method");
 
         Client client = clientService.findById(id);
-        clientService.delete(client);
+        if (client == null) {
+            logger.warn("Client with id - " + id + " not found");
+        } else {
+            clientService.delete(client);
+        }
     }
 }

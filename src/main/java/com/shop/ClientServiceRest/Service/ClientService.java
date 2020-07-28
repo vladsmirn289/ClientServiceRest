@@ -17,6 +17,5 @@ public interface ClientService extends UserDetailsService {
     void save(Client client);
 
     void delete(Client client);
-    void deleteById(Long id);
-    void deleteBasketItems(Set<ClientItem> itemSet, String login);
+//  void deleteBasketItems(Set<ClientItem> itemSet, String login);
 }

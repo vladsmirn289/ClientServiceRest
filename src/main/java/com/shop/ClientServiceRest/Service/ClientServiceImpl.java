@@ -93,12 +93,7 @@ public class ClientServiceImpl implements ClientService {
         clientRepo.delete(client);
     }
 
-    @Override
-    public void deleteById(Long id) {
-        logger.info("Deleting client with id = " + id + " from database");
-        clientRepo.deleteById(id);
-    }
-
+/*  TODO: realize with other service
     @Override
     public void deleteBasketItems(Set<ClientItem> itemSet, String login) {
         Client client = clientRepo.findByLogin(login);
@@ -115,7 +110,7 @@ public class ClientServiceImpl implements ClientService {
 
         client.setBasket(basketItems);
         save(client);
-    }
+    }*/
 
     @Override
     public UserDetails loadUserByUsername(String login) throws UsernameNotFoundException {
