@@ -48,7 +48,7 @@ public class ClientSerializer extends StdSerializer<Client> {
         if (client.getConfirmationCode() == null) {
             jsonGenerator.writeNullField("confirmationCode");
         } else {
-            jsonGenerator.writeStringField("ConfirmationCode", client.getConfirmationCode());
+            jsonGenerator.writeStringField("confirmationCode", client.getConfirmationCode());
         }
 
         jsonGenerator.writeBooleanField("accountNonLocked", client.isAccountNonLocked());

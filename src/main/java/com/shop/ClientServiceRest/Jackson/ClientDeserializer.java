@@ -45,7 +45,7 @@ public class ClientDeserializer extends StdDeserializer<Client> {
             client.setId(node.get("id").asLong());
         }
         if (node.hasNonNull("patronymic")) {
-            client.setPassword(node.get("patronymic").asText());
+            client.setPatronymic(node.get("patronymic").asText());
         }
         if (node.hasNonNull("confirmationCode")) {
             client.setConfirmationCode(node.get("confirmationCode").asText());

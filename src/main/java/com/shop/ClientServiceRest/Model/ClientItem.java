@@ -1,5 +1,8 @@
 package com.shop.ClientServiceRest.Model;
 
+import com.fasterxml.jackson.annotation.JsonIdentityInfo;
+import com.fasterxml.jackson.annotation.ObjectIdGenerators;
+
 import javax.persistence.*;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Positive;
@@ -7,6 +10,7 @@ import java.util.Objects;
 
 @Entity
 @Table(name = "client_item")
+@JsonIdentityInfo(generator = ObjectIdGenerators.PropertyGenerator.class, property = "id")
 public class ClientItem {
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE)

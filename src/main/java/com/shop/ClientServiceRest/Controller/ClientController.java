@@ -1,20 +1,26 @@
 package com.shop.ClientServiceRest.Controller;
 
 import com.shop.ClientServiceRest.Model.Client;
+import com.shop.ClientServiceRest.Model.ClientItem;
+import com.shop.ClientServiceRest.Model.Order;
 import com.shop.ClientServiceRest.Service.ClientService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.*;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.client.RestTemplate;
 
 import javax.validation.Valid;
+import java.util.HashSet;
 import java.util.List;
 import java.util.NoSuchElementException;
+import java.util.Set;
 
 @RestController
 @RequestMapping("/api/clients")
@@ -90,20 +96,28 @@ public class ClientController {
             return new ResponseEntity<>(client, HttpStatus.BAD_REQUEST);
         }
 
-        Client persistentClient = clientService.findById(id);
-        if (persistentClient == null) {
+        try {
+            Client persistentClient = clientService.findById(id);
+
+            BeanUtils.copyProperties(client, persistentClient, "id");
+            clientService.save(persistentClient);
+            return new ResponseEntity<>(persistentClient, HttpStatus.OK);
+        } catch (NoSuchElementException ex) {
             logger.warn("Client with id - " + id + " not found");
+            logger.error(ex.toString());
             return new ResponseEntity<>(null, HttpStatus.NOT_FOUND);
         }
-
-        BeanUtils.copyProperties(client, persistentClient, "id");
-        clientService.save(persistentClient);
-        return new ResponseEntity<>(persistentClient, HttpStatus.OK);
     }
 
     @PostMapping
-    public ResponseEntity<Client> createNewClient(@RequestBody Client client) {
+    public ResponseEntity<Client> createNewClient(@RequestBody @Valid Client client,
+                                                  BindingResult bindingResult) {
         logger.info("Called createNewClient method");
+
+        if (bindingResult.hasErrors()) {
+            logger.info("Bad request on update client information");
+            return new ResponseEntity<>(client, HttpStatus.BAD_REQUEST);
+        }
 
         clientService.save(client);
         return new ResponseEntity<>(client, HttpStatus.CREATED);
@@ -113,11 +127,52 @@ public class ClientController {
     public void deleteClient(@PathVariable("id") Long id) {
         logger.info("Called deleteClient method");
 
-        Client client = clientService.findById(id);
-        if (client == null) {
-            logger.warn("Client with id - " + id + " not found");
-        } else {
+        try {
+            Client client = clientService.findById(id);
             clientService.delete(client);
+        } catch (NoSuchElementException ex) {
+            logger.warn("Client with id - " + id + " not found");
+            logger.error(ex.toString());
+        }
+    }
+
+    @GetMapping("/{id}/basket")
+    public ResponseEntity<List<ClientItem>> getBasketByClientId(@PathVariable("id") Long id) {
+        logger.info("Called getBasketByClientId method");
+
+        try {
+            List<ClientItem> basket = clientService.findBasketItemsByClientId(id);
+            return new ResponseEntity<>(basket, HttpStatus.OK);
+        } catch (NoSuchElementException ex) {
+            logger.warn("Client with id - " + id + " not found");
+            logger.error(ex.toString());
+            return new ResponseEntity<>(null, HttpStatus.NOT_FOUND);
+        }
+    }
+
+    @DeleteMapping("/{id}/basket")
+    public void clearBasketByClientId(@PathVariable("id") Long id) {
+        logger.info("Called clearBasketByClientId method");
+
+        List<ClientItem> basket = getBasketByClientId(id).getBody();
+        if (basket == null || basket.isEmpty()) {
+            return;
+        }
+
+        clientService.deleteBasketItems(new HashSet<>(basket), id);
+    }
+
+    @GetMapping("/{id}/orders")
+    public ResponseEntity<List<Order>> getOrdersByClientId(@PathVariable("id") Long id) {
+        logger.info("Called getOrdersByClientId method");
+
+        try {
+            List<Order> orders = clientService.findOrdersByClientId(id);
+            return new ResponseEntity<>(orders, HttpStatus.OK);
+        } catch (NoSuchElementException ex) {
+            logger.warn("Client with id - " + id + " not found");
+            logger.error(ex.toString());
+            return new ResponseEntity<>(null, HttpStatus.NOT_FOUND);
         }
     }
 }

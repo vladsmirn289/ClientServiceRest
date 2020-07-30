@@ -1,5 +1,7 @@
 package com.shop.ClientServiceRest.Model;
 
+import com.fasterxml.jackson.annotation.JsonIdentityInfo;
+import com.fasterxml.jackson.annotation.ObjectIdGenerators;
 import org.hibernate.annotations.CreationTimestamp;
 
 import javax.persistence.*;
@@ -10,6 +12,7 @@ import java.util.Objects;
 import java.util.Set;
 
 @Entity
+@JsonIdentityInfo(generator = ObjectIdGenerators.PropertyGenerator.class, property = "id")
 public class Item {
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE)
@@ -34,8 +37,7 @@ public class Item {
     @Size(max = 50_000)
     private String characteristics;
 
-    @Column(columnDefinition = "bytea")
-    private byte[] image;
+    private String image;
 
     @OneToMany(fetch = FetchType.EAGER,
                cascade = {CascadeType.REMOVE})
@@ -125,11 +127,11 @@ public class Item {
         this.characteristics = characteristics;
     }
 
-    public byte[] getImage() {
+    public String getImage() {
         return image;
     }
 
-    public void setImage(byte[] image) {
+    public void setImage(String image) {
         this.image = image;
     }
 

@@ -2,8 +2,10 @@ package com.shop.ClientServiceRest.Service;
 
 import com.shop.ClientServiceRest.Model.Client;
 import com.shop.ClientServiceRest.Model.ClientItem;
+import com.shop.ClientServiceRest.Model.Order;
 import com.shop.ClientServiceRest.Model.Role;
 import com.shop.ClientServiceRest.Repository.ClientRepo;
+import org.hibernate.Hibernate;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -38,31 +40,54 @@ public class ClientServiceImpl implements ClientService {
 
     @Autowired
     public void setPasswordEncoder(PasswordEncoder passwordEncoder) {
+        logger.debug("Setting passwordEncoder");
         this.passwordEncoder = passwordEncoder;
     }
 
     @Override
     @Transactional(readOnly = true)
     public Client findById(Long id) {
+        logger.info("Find client by id - " + id);
         return clientRepo.findById(id).orElseThrow(NoSuchElementException::new);
     }
 
     @Override
     @Transactional(readOnly = true)
     public Page<Client> findAll(Pageable pageable) {
+        logger.info("Find all clients with pagination");
         return clientRepo.findAll(pageable);
     }
 
     @Override
     @Transactional(readOnly = true)
     public Client findByLogin(String login) {
+        logger.info("Find client by login - " + login);
         return clientRepo.findByLogin(login);
     }
 
     @Override
     @Transactional(readOnly = true)
     public Client findByConfirmationCode(String confirmationCode) {
+        logger.info("Find client by confirmation code - " + confirmationCode);
         return clientRepo.findByConfirmationCode(confirmationCode);
+    }
+
+    @Override
+    public List<ClientItem> findBasketItemsByClientId(Long id) {
+        logger.info("Find basket items by client id - " + id);
+        Client client = clientRepo.findById(id).orElseThrow(NoSuchElementException::new);
+        Hibernate.initialize(client.getBasket());
+
+        return new ArrayList<>(client.getBasket());
+    }
+
+    @Override
+    public List<Order> findOrdersByClientId(Long id) {
+        logger.info("Find orders by client id - " + id);
+        Client client = clientRepo.findById(id).orElseThrow(NoSuchElementException::new);
+        Hibernate.initialize(client.getOrders());
+
+        return new ArrayList<>(client.getOrders());
     }
 
     @Override
@@ -93,10 +118,10 @@ public class ClientServiceImpl implements ClientService {
         clientRepo.delete(client);
     }
 
-/*  TODO: realize with other service
     @Override
-    public void deleteBasketItems(Set<ClientItem> itemSet, String login) {
-        Client client = clientRepo.findByLogin(login);
+    public void deleteBasketItems(Set<ClientItem> itemSet, Long id) {
+        logger.info("Called deleteBasketItems method");
+        Client client = clientRepo.findById(id).orElseThrow(NoSuchElementException::new);
 
         Set<ClientItem> basketItems = client.getBasket()
                 .stream().map(clientItem -> {
@@ -110,7 +135,7 @@ public class ClientServiceImpl implements ClientService {
 
         client.setBasket(basketItems);
         save(client);
-    }*/
+    }
 
     @Override
     public UserDetails loadUserByUsername(String login) throws UsernameNotFoundException {

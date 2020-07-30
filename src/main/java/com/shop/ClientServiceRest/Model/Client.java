@@ -1,6 +1,8 @@
 package com.shop.ClientServiceRest.Model;
 
+import com.fasterxml.jackson.annotation.JsonIdentityInfo;
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.ObjectIdGenerators;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.shop.ClientServiceRest.Jackson.ClientDeserializer;
@@ -20,6 +22,7 @@ import java.util.Set;
 @Entity
 @JsonSerialize(using = ClientSerializer.class)
 @JsonDeserialize(using = ClientDeserializer.class)
+@JsonIdentityInfo(generator = ObjectIdGenerators.PropertyGenerator.class, property = "id")
 public class Client implements UserDetails {
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE)
