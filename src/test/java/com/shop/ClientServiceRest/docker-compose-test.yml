@@ -1,0 +1,32 @@
+version: '3'
+services:
+  db:
+    image: postgres:11.4-alpine
+    container_name: postgres-test
+    ports:
+      - 5433:5432
+    environment:
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: shop_db
+    restart: always
+  testAuthService:
+    image: vladsmirn289/authentication_service
+    container_name: testAuthService
+    ports:
+      - 9001:8081
+    environment:
+      db_host: db
+    restart: always
+    links:
+      - db
+  testClientService:
+    image: vladsmirn289/client_service_rest
+    container_name: testClientService
+    ports:
+      - 9002:8082
+    environment:
+      POSTGRES_HOST: db
+    restart: always
+    links:
+      - testAuthService
+      - db
