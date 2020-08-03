@@ -11,10 +11,6 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
-import org.springframework.security.authentication.AuthenticationManager;
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -141,11 +137,12 @@ public class ClientServiceImpl implements ClientService {
     public UserDetails loadUserByUsername(String login) throws UsernameNotFoundException {
         logger.info("LoadingUserByUsername called");
         Client client = findByLogin(login);
-        if ( (client != null) && (client.getConfirmationCode() == null) ) {
-            return client;
-        } else {
-            logger.warn("Client null or not confirmed");
-            return null;
+
+        if (client == null) {
+            logger.warn("Client with login - " + login + " not found");
+            throw new UsernameNotFoundException("Client not found");
         }
+
+        return client;
     }
 }

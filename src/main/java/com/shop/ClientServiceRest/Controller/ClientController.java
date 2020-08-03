@@ -8,19 +8,20 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.data.domain.*;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.client.RestTemplate;
 
 import javax.validation.Valid;
 import java.util.HashSet;
 import java.util.List;
 import java.util.NoSuchElementException;
-import java.util.Set;
 
 @RestController
 @RequestMapping("/api/clients")
@@ -29,6 +30,13 @@ public class ClientController {
 
     private ClientService clientService;
 
+    private static final String ACCESS_BY_ID_OR_NOT_USER_ROLE = "#authClient.id == #id" +
+            " || hasAnyRole('ADMIN', 'MANAGER')";
+    private static final String ACCESS_BY_USERNAME_OR_NOT_USER_ROLE = "#authClient.login == #login" +
+            " || hasAnyRole('ADMIN', 'MANAGER')";
+    private static final String ACCESS_BY_CONFIRM_CODE_OR_NOT_USER_ROLE = "#authClient.confirmationCode == #code" +
+            " || hasAnyRole('ADMIN', 'MANAGER')";
+
     @Autowired
     public void setClientService(ClientService clientService) {
         logger.debug("Setting clientService");
@@ -36,7 +44,9 @@ public class ClientController {
     }
 
     @GetMapping(params = {"page", "size"})
-    public ResponseEntity<List<Client>> listOfClients(@RequestParam("page") int page,
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<List<Client>> listOfClients(@AuthenticationPrincipal Client authClient,
+                                                      @RequestParam("page") int page,
                                                       @RequestParam("size") int size) {
         logger.info("Called listOfClients method");
         Pageable pageable = PageRequest.of(page, size, Sort.by("id"));
@@ -46,7 +56,9 @@ public class ClientController {
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<Client> clientById(@PathVariable("id") Long id) {
+    @PreAuthorize(ACCESS_BY_ID_OR_NOT_USER_ROLE)
+    public ResponseEntity<Client> clientById(@AuthenticationPrincipal Client authClient,
+                                             @PathVariable("id") Long id) {
         logger.info("Called clientById method");
 
         try {
@@ -60,7 +72,9 @@ public class ClientController {
     }
 
     @GetMapping("/byLogin/{login}")
-    public ResponseEntity<Client> clientByLogin(@PathVariable("login") String login) {
+    @PreAuthorize(ACCESS_BY_USERNAME_OR_NOT_USER_ROLE)
+    public ResponseEntity<Client> clientByLogin(@AuthenticationPrincipal Client authClient,
+                                                @PathVariable("login") String login) {
         logger.info("Called clientByLogin method");
 
         Client client = clientService.findByLogin(login);
@@ -73,7 +87,9 @@ public class ClientController {
     }
 
     @GetMapping("/byConfirmCode/{code}")
-    public ResponseEntity<Client> clientByConfirmCode(@PathVariable("code") String code) {
+    @PreAuthorize(ACCESS_BY_CONFIRM_CODE_OR_NOT_USER_ROLE)
+    public ResponseEntity<Client> clientByConfirmCode(@AuthenticationPrincipal Client authClient,
+                                                      @PathVariable("code") String code) {
         logger.info("Called clientByConfirmCode method");
 
         Client client = clientService.findByConfirmationCode(code);
@@ -86,7 +102,9 @@ public class ClientController {
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<Client> updateClient(@PathVariable("id") Long id,
+    @PreAuthorize(ACCESS_BY_ID_OR_NOT_USER_ROLE)
+    public ResponseEntity<Client> updateClient(@AuthenticationPrincipal Client authClient,
+                                               @PathVariable("id") Long id,
                                                @RequestBody @Valid Client client,
                                                BindingResult bindingResult) {
         logger.info("Called updateClient method");
@@ -124,7 +142,9 @@ public class ClientController {
     }
 
     @DeleteMapping("/{id}")
-    public void deleteClient(@PathVariable("id") Long id) {
+    @PreAuthorize(ACCESS_BY_ID_OR_NOT_USER_ROLE)
+    public void deleteClient(@AuthenticationPrincipal Client authClient,
+                             @PathVariable("id") Long id) {
         logger.info("Called deleteClient method");
 
         try {
@@ -137,7 +157,9 @@ public class ClientController {
     }
 
     @GetMapping("/{id}/basket")
-    public ResponseEntity<List<ClientItem>> getBasketByClientId(@PathVariable("id") Long id) {
+    @PreAuthorize(ACCESS_BY_ID_OR_NOT_USER_ROLE)
+    public ResponseEntity<List<ClientItem>> getBasketByClientId(@AuthenticationPrincipal Client authClient,
+                                                                @PathVariable("id") Long id) {
         logger.info("Called getBasketByClientId method");
 
         try {
@@ -151,10 +173,12 @@ public class ClientController {
     }
 
     @DeleteMapping("/{id}/basket")
-    public void clearBasketByClientId(@PathVariable("id") Long id) {
+    @PreAuthorize(ACCESS_BY_ID_OR_NOT_USER_ROLE)
+    public void clearBasketByClientId(@AuthenticationPrincipal Client authClient,
+                                      @PathVariable("id") Long id) {
         logger.info("Called clearBasketByClientId method");
 
-        List<ClientItem> basket = getBasketByClientId(id).getBody();
+        List<ClientItem> basket = getBasketByClientId(authClient, id).getBody();
         if (basket == null || basket.isEmpty()) {
             return;
         }
@@ -163,7 +187,9 @@ public class ClientController {
     }
 
     @GetMapping("/{id}/orders")
-    public ResponseEntity<List<Order>> getOrdersByClientId(@PathVariable("id") Long id) {
+    @PreAuthorize(ACCESS_BY_ID_OR_NOT_USER_ROLE)
+    public ResponseEntity<List<Order>> getOrdersByClientId(@AuthenticationPrincipal Client authClient,
+                                                           @PathVariable("id") Long id) {
         logger.info("Called getOrdersByClientId method");
 
         try {

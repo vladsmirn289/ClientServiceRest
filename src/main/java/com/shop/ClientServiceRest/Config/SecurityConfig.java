@@ -1,17 +1,20 @@
 package com.shop.ClientServiceRest.Config;
 
+import com.shop.ClientServiceRest.Config.JWT.JwtFilter;
 import com.shop.ClientServiceRest.Service.ClientService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
 import org.springframework.security.config.annotation.method.configuration.EnableGlobalMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
+import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.security.web.authentication.AuthenticationSuccessHandler;
+import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
 @Configuration
 @EnableWebSecurity
@@ -19,6 +22,7 @@ import org.springframework.security.web.authentication.AuthenticationSuccessHand
 public class SecurityConfig extends WebSecurityConfigurerAdapter {
     private PasswordEncoder passwordEncoder;
     private ClientService clientService;
+    private JwtFilter jwtFilter;
 
     @Autowired
     public void setPasswordEncoder(PasswordEncoder passwordEncoder) {
@@ -30,41 +34,41 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
         this.clientService = clientService;
     }
 
+    @Autowired
+    public void setJwtFilter(JwtFilter jwtFilter) {
+        this.jwtFilter = jwtFilter;
+    }
+
+    @Bean
+    @Override
+    public AuthenticationManager authenticationManagerBean() throws Exception {
+        return super.authenticationManagerBean();
+    }
+
     @Override
     protected void configure(HttpSecurity http) throws Exception {
         http
                 .authorizeRequests()
 
-                    /*.antMatchers("/**")
-                    .permitAll()
-
                     .antMatchers(
-                            "/order/manager",
-                            "/order/setManager/*",
-                            "/order/editOrder/*",
-                            "/order/changeOrderStatus/*")
-                    .hasRole("MANAGER")
-
-                    .antMatchers("/admin/**")
-                    .hasRole("ADMIN")*/
+                            HttpMethod.POST,
+                            "/api/clients")
+                    .permitAll()
 
                     .anyRequest()
-                    .permitAll()
-                    //.authenticated()
+                    .authenticated()
 
                 .and()
 
-                    .formLogin()
-                    .loginPage("/login")
-                    .permitAll()
+                    .sessionManagement()
+                    .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
 
                 .and()
 
-                    .logout()
-                    .permitAll()
-                .and()
-                .csrf()
-                .disable();
+                    .csrf()
+                    .disable();
+
+        http.addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class);
     }
 
     @Override

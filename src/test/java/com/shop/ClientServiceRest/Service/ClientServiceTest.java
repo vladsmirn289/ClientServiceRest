@@ -245,26 +245,12 @@ public class ClientServiceTest {
     @Test
     @SuppressWarnings("unchecked")
     public void shouldRaiseExceptionWhenTryToDeleteBasketItemByNonExistsClient() {
-        assertThrows(NoSuchElementException.class, () -> {
-            clientService.deleteBasketItems(Collections.EMPTY_SET, 500L);
-        });
+        assertThrows(NoSuchElementException.class, () ->
+                clientService.deleteBasketItems(Collections.EMPTY_SET, 500L));
 
         Mockito
                 .verify(clientRepo, Mockito.times(1))
                 .findById(500L);
-    }
-
-    @Test
-    public void shouldReturnNullWhenLoadClientByUsernameWithNotEmptyConfirmationCode() {
-        client.setConfirmationCode("123");
-        Mockito
-                .doReturn(client)
-                .when(clientRepo)
-                .findByLogin("A");
-
-        UserDetails userDetails = clientService.loadUserByUsername("A");
-
-        assertThat(userDetails).isNull();
     }
 
     @Test

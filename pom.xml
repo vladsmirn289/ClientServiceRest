@@ -12,8 +12,7 @@
     <properties>
         <java.version>1.8</java.version>
         <apache.maven.compiler.plugin.version>3.8.1</apache.maven.compiler.plugin.version>
-        <jacoco.plugin.version>0.8.5</jacoco.plugin.version>
-        <maven-surfire.plugin.version>3.0.0-M5</maven-surfire.plugin.version>
+        <jjwt.version>0.9.1</jjwt.version>
     </properties>
 
     <parent>
@@ -102,6 +101,14 @@
             <artifactId>spring-boot-starter-log4j2</artifactId>
         </dependency>
 
+        <!-- JWT -->
+
+        <dependency>
+            <groupId>io.jsonwebtoken</groupId>
+            <artifactId>jjwt</artifactId>
+            <version>${jjwt.version}</version>
+        </dependency>
+
     </dependencies>
 
     <build>
@@ -120,31 +127,6 @@
                     <source>${java.version}</source>
                     <target>${java.version}</target>
                 </configuration>
-            </plugin>
-
-            <plugin>
-                <artifactId>maven-surefire-plugin</artifactId>
-                <version>${maven-surfire.plugin.version}</version>
-            </plugin>
-
-            <plugin>
-                <groupId>org.jacoco</groupId>
-                <artifactId>jacoco-maven-plugin</artifactId>
-                <version>${jacoco.plugin.version}</version>
-                <executions>
-                    <execution>
-                        <goals>
-                            <goal>prepare-agent</goal>
-                        </goals>
-                    </execution>
-                    <execution>
-                        <id>report</id>
-                        <phase>test</phase>
-                        <goals>
-                            <goal>report</goal>
-                        </goals>
-                    </execution>
-                </executions>
             </plugin>
 
         </plugins>

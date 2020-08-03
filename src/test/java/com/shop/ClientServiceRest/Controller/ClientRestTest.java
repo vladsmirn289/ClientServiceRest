@@ -1,24 +1,22 @@
 package com.shop.ClientServiceRest.Controller;
 
+import com.shop.ClientServiceRest.DTO.AuthRequest;
+import com.shop.ClientServiceRest.DTO.AuthResponse;
 import com.shop.ClientServiceRest.Model.Client;
 import com.shop.ClientServiceRest.Model.ClientItem;
 import com.shop.ClientServiceRest.Model.Order;
 import com.shop.ClientServiceRest.Service.ClientService;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.jdbc.EmbeddedDatabaseConnection;
-import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.web.client.TestRestTemplate;
 import org.springframework.context.annotation.PropertySource;
 import org.springframework.core.ParameterizedTypeReference;
-import org.springframework.http.HttpEntity;
-import org.springframework.http.HttpMethod;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
+import org.springframework.http.*;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.test.context.jdbc.Sql;
+import org.springframework.web.client.RestTemplate;
 
 import java.util.List;
 import java.util.NoSuchElementException;
@@ -27,10 +25,9 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
-@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
+@SpringBootTest
 @AutoConfigureMockMvc
 @PropertySource(value = "classpath:application.properties")
-@AutoConfigureTestDatabase(connection = EmbeddedDatabaseConnection.H2)
 @Sql(value = {
         "classpath:db/H2/after-test.sql",
         "classpath:db/H2/category-test.sql",
@@ -41,8 +38,7 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
         "classpath:db/H2/basket-test.sql"},
         executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
 public class ClientRestTest {
-    @Autowired
-    private TestRestTemplate restTemplate;
+    private final TestRestTemplate restTemplate = new TestRestTemplate();
 
     @Autowired
     private PasswordEncoder passwordEncoder;
@@ -50,13 +46,28 @@ public class ClientRestTest {
     @Autowired
     private ClientService clientService;
 
+    private HttpHeaders getHeaderWithJwt(String name, String password) {
+        AuthRequest authRequest = new AuthRequest(name, password);
+        AuthResponse authResponse = restTemplate.postForEntity(
+                "http://localhost:9001/api/authentication",
+                authRequest,
+                AuthResponse.class).getBody();
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.add("Authorization", "Bearer " + authResponse.getJwtToken());
+
+        return headers;
+    }
+
     @Test
     void showListOfClients() {
+        HttpHeaders headers = getHeaderWithJwt("admin", "01112");
+
         ResponseEntity<List<Client>> responseClients =
                 restTemplate.exchange(
-                        "/api/clients?page=0&size=2",
+                        "http://localhost:9002/api/clients?page=0&size=2",
                         HttpMethod.GET,
-                        null,
+                        new HttpEntity<>(headers),
                         new ParameterizedTypeReference<List<Client>>(){});
 
         assertThat(responseClients.getStatusCode()).isEqualTo(HttpStatus.OK);
@@ -88,8 +99,14 @@ public class ClientRestTest {
 
     @Test
     void showClientById() {
+        HttpHeaders headers = getHeaderWithJwt("simpleUser", "12345");
+
         ResponseEntity<Client> responseClient =
-                restTemplate.getForEntity("/api/clients/12", Client.class);
+                restTemplate.exchange(
+                        "http://localhost:9002/api/clients/12",
+                        HttpMethod.GET,
+                        new HttpEntity<>(headers),
+                        Client.class);
 
         assertThat(responseClient.getStatusCode()).isEqualTo(HttpStatus.OK);
         assertThat(responseClient.getBody()).isNotNull();
@@ -107,8 +124,14 @@ public class ClientRestTest {
 
     @Test
     void shouldNotFoundWhenFindClientByIncorrectId() {
+        HttpHeaders headers = getHeaderWithJwt("admin", "01112");
+
         ResponseEntity<Client> responseClient =
-                restTemplate.getForEntity("/api/clients/200", Client.class);
+                restTemplate.exchange(
+                        "http://localhost:9002/api/clients/200",
+                        HttpMethod.GET,
+                        new HttpEntity<>(headers),
+                        Client.class);
 
         assertThat(responseClient.getStatusCode()).isEqualTo(HttpStatus.NOT_FOUND);
         assertThat(responseClient.getBody()).isNull();
@@ -116,8 +139,14 @@ public class ClientRestTest {
 
     @Test
     void showClientByLogin() {
+        HttpHeaders headers = getHeaderWithJwt("simpleUser", "12345");
+
         ResponseEntity<Client> responseClient =
-                restTemplate.getForEntity("/api/clients/byLogin/simpleUser", Client.class);
+                restTemplate.exchange(
+                        "http://localhost:9002/api/clients/byLogin/simpleUser",
+                        HttpMethod.GET,
+                        new HttpEntity<>(headers),
+                        Client.class);
 
         assertThat(responseClient.getStatusCode()).isEqualTo(HttpStatus.OK);
         assertThat(responseClient.getBody()).isNotNull();
@@ -135,8 +164,14 @@ public class ClientRestTest {
 
     @Test
     void shouldNotFoundWhenFindClientByIncorrectLogin() {
+        HttpHeaders headers = getHeaderWithJwt("admin", "01112");
+
         ResponseEntity<Client> responseClient =
-                restTemplate.getForEntity("/api/clients/byLogin/incorrect", Client.class);
+                restTemplate.exchange(
+                        "http://localhost:9002/api/clients/byLogin/incorrect",
+                        HttpMethod.GET,
+                        new HttpEntity<>(headers),
+                        Client.class);
 
         assertThat(responseClient.getStatusCode()).isEqualTo(HttpStatus.NOT_FOUND);
         assertThat(responseClient.getBody()).isNull();
@@ -144,8 +179,15 @@ public class ClientRestTest {
 
     @Test
     void showClientByConfirmCode() {
+        HttpHeaders headers = getHeaderWithJwt("userWithCode", "01112");
+        RestTemplate restTemplate = new RestTemplate();
+
         ResponseEntity<Client> responseClient =
-                restTemplate.getForEntity("/api/clients/byConfirmCode/123", Client.class);
+                restTemplate.exchange(
+                        "http://localhost:9002/api/clients/byConfirmCode/123",
+                        HttpMethod.GET,
+                        new HttpEntity<>(headers),
+                        Client.class);
 
         assertThat(responseClient.getStatusCode()).isEqualTo(HttpStatus.OK);
         assertThat(responseClient.getBody()).isNotNull();
@@ -155,7 +197,7 @@ public class ClientRestTest {
         assertThat(first.getFirstName()).isEqualTo("STU");
         assertThat(first.getLastName()).isEqualTo("VWX");
         assertThat(first.getLogin()).isEqualTo("userWithCode");
-        assertThat(first.getPassword()).isEqualTo("01112");
+        assertThat(passwordEncoder.matches("01112", first.getPassword())).isTrue();
         assertThat(first.getEmail()).isEqualTo("g@g.com");
         assertThat(first.getPatronymic()).isNull();
         assertThat(first.isAccountNonLocked()).isTrue();
@@ -163,8 +205,14 @@ public class ClientRestTest {
 
     @Test
     void shouldNotFoundWhenFindClientByIncorrectConfirmCode() {
+        HttpHeaders headers = getHeaderWithJwt("admin", "01112");
+
         ResponseEntity<Client> responseClient =
-                restTemplate.getForEntity("/api/clients/byConfirmCode/1234567890", Client.class);
+                restTemplate.exchange(
+                        "http://localhost:9002/api/clients/byConfirmCode/1234567890",
+                        HttpMethod.GET,
+                        new HttpEntity<>(headers),
+                        Client.class);
 
         assertThat(responseClient.getStatusCode()).isEqualTo(HttpStatus.NOT_FOUND);
         assertThat(responseClient.getBody()).isNull();
@@ -172,18 +220,20 @@ public class ClientRestTest {
 
     @Test
     void shouldSuccessUpdateClient() {
+        HttpHeaders headers = getHeaderWithJwt("simpleUser", "12345");
+
         Client client = clientService.findById(12L);
         client.setFirstName("firstName");
         client.setLastName("lastName");
         client.setLogin("RandomLogin");
-        HttpEntity<Client> httpEntity = new HttpEntity<>(client);
 
         ResponseEntity<Client> responseClient =
                 restTemplate.exchange(
-                        "/api/clients/12",
+                        "http://localhost:9002/api/clients/12",
                         HttpMethod.PUT,
-                        httpEntity,
-                        Client.class);
+                        new HttpEntity<>(client, headers),
+                        Client.class,
+                        headers);
 
         assertThat(responseClient.getStatusCode()).isEqualTo(HttpStatus.OK);
         assertThat(responseClient.getBody()).isNotNull();
@@ -201,17 +251,18 @@ public class ClientRestTest {
 
     @Test
     void shouldBadRequestWhenTryToUpdateClient() {
+        HttpHeaders headers = getHeaderWithJwt("simpleUser", "12345");
+
         Client client = clientService.findById(12L);
         client.setFirstName("");
         client.setLastName("");
         client.setLogin("");
-        HttpEntity<Client> httpEntity = new HttpEntity<>(client);
 
         ResponseEntity<Client> responseClient =
                 restTemplate.exchange(
-                        "/api/clients/12",
+                        "http://localhost:9002/api/clients/12",
                         HttpMethod.PUT,
-                        httpEntity,
+                        new HttpEntity<>(client, headers),
                         Client.class);
 
         assertThat(responseClient.getStatusCode()).isEqualTo(HttpStatus.BAD_REQUEST);
@@ -230,17 +281,18 @@ public class ClientRestTest {
 
     @Test
     void shouldNotFoundWhenTryToUpdateClient() {
+        HttpHeaders headers = getHeaderWithJwt("admin", "01112");
+
         Client client = clientService.findById(12L);
         client.setFirstName("firstName");
         client.setLastName("lastName");
         client.setLogin("RandomLogin");
-        HttpEntity<Client> httpEntity = new HttpEntity<>(client);
 
         ResponseEntity<Client> responseClient =
                 restTemplate.exchange(
-                        "/api/clients/200",
+                        "http://localhost:9002/api/clients/200",
                         HttpMethod.PUT,
-                        httpEntity,
+                        new HttpEntity<>(client, headers),
                         Client.class);
 
         assertThat(responseClient.getStatusCode()).isEqualTo(HttpStatus.NOT_FOUND);
@@ -262,7 +314,7 @@ public class ClientRestTest {
 
         ResponseEntity<Client> responseClient =
                 restTemplate.exchange(
-                        "/api/clients",
+                        "http://localhost:9002/api/clients",
                         HttpMethod.POST,
                         httpEntity,
                         Client.class);
@@ -296,7 +348,7 @@ public class ClientRestTest {
 
         ResponseEntity<Client> responseClient =
                 restTemplate.exchange(
-                        "/api/clients",
+                        "http://localhost:9002/api/clients",
                         HttpMethod.POST,
                         httpEntity,
                         Client.class);
@@ -317,14 +369,26 @@ public class ClientRestTest {
 
     @Test
     void shouldDeleteClientById() {
-        restTemplate.delete("/api/clients/12");
+        HttpHeaders headers = getHeaderWithJwt("simpleUser", "12345");
+
+        restTemplate.exchange(
+                "http://localhost:9002/api/clients/12",
+                HttpMethod.DELETE,
+                new HttpEntity<>(headers),
+                Object.class);
 
         assertThrows(NoSuchElementException.class, () -> clientService.findById(12L));
     }
 
     @Test
     void shouldDoNothingWhenTryToDeleteClientWithIncorrectId() {
-        restTemplate.delete("/api/clients/100");
+        HttpHeaders headers = getHeaderWithJwt("admin", "01112");
+
+        restTemplate.exchange(
+                "http://localhost:9002/api/clients/100",
+                HttpMethod.DELETE,
+                new HttpEntity<>(headers),
+                Object.class);
 
         assertDoesNotThrow(() -> {
             clientService.findById(12L);
@@ -333,11 +397,13 @@ public class ClientRestTest {
 
     @Test
     void shouldSuccessGetBasketByClientId() {
+        HttpHeaders headers = getHeaderWithJwt("simpleUser", "12345");
+
         ResponseEntity<List<ClientItem>> basketResponse =
                 restTemplate.exchange(
-                        "/api/clients/12/basket",
+                        "http://localhost:9002/api/clients/12/basket",
                         HttpMethod.GET,
-                        null,
+                        new HttpEntity<>(headers),
                         new ParameterizedTypeReference<List<ClientItem>>() {});
 
         assertThat(basketResponse.getStatusCode()).isEqualTo(HttpStatus.OK);
@@ -349,11 +415,13 @@ public class ClientRestTest {
 
     @Test
     void shouldNotFoundWhenTryToGetBasketByClientWithIncorrectId() {
+        HttpHeaders headers = getHeaderWithJwt("admin", "01112");
+
         ResponseEntity<List<ClientItem>> basketResponse =
                 restTemplate.exchange(
-                        "/api/clients/100/basket",
+                        "http://localhost:9002/api/clients/100/basket",
                         HttpMethod.GET,
-                        null,
+                        new HttpEntity<>(headers),
                         new ParameterizedTypeReference<List<ClientItem>>() {});
 
         assertThat(basketResponse.getStatusCode()).isEqualTo(HttpStatus.NOT_FOUND);
@@ -362,13 +430,19 @@ public class ClientRestTest {
 
     @Test
     void shouldSuccessDeleteBasketByClientId() {
-        restTemplate.delete("/api/clients/12/basket");
+        HttpHeaders headers = getHeaderWithJwt("simpleUser", "12345");
+
+        restTemplate.exchange(
+                "http://localhost:9002/api/clients/12/basket",
+                HttpMethod.DELETE,
+                new HttpEntity<>(headers),
+                Object.class);
 
         ResponseEntity<List<ClientItem>> basketResponse =
                 restTemplate.exchange(
-                        "/api/clients/12/basket",
+                        "http://localhost:9002/api/clients/12/basket",
                         HttpMethod.GET,
-                        null,
+                        new HttpEntity<>(headers),
                         new ParameterizedTypeReference<List<ClientItem>>() {});
 
         assertThat(basketResponse.getBody()).isNotNull();
@@ -377,16 +451,24 @@ public class ClientRestTest {
 
     @Test
     void shouldDoNothingWhenTryToDeleteBasketByIncorrectData() {
-        restTemplate.delete("/api/clients/13/basket");
+        HttpHeaders headers = getHeaderWithJwt("admin", "01112");
+
+        restTemplate.exchange(
+                "http://localhost:9002/api/13/basket",
+                HttpMethod.DELETE,
+                new HttpEntity<>(headers),
+                Object.class);
     }
 
     @Test
     void shouldSuccessGetOrdersByClientId() {
+        HttpHeaders headers = getHeaderWithJwt("simpleUser", "12345");
+
         ResponseEntity<List<Order>> basketResponse =
                 restTemplate.exchange(
-                        "/api/clients/12/orders",
+                        "http://localhost:9002/api/clients/12/orders",
                         HttpMethod.GET,
-                        null,
+                        new HttpEntity<>(headers),
                         new ParameterizedTypeReference<List<Order>>() {});
 
         assertThat(basketResponse.getStatusCode()).isEqualTo(HttpStatus.OK);
@@ -398,11 +480,13 @@ public class ClientRestTest {
 
     @Test
     void shouldNotFoundWhenTryToGetOrdersByClientWithIncorrectId() {
+        HttpHeaders headers = getHeaderWithJwt("admin", "01112");
+
         ResponseEntity<List<Order>> basketResponse =
                 restTemplate.exchange(
-                        "/api/clients/100/orders",
+                        "http://localhost:9002/api/clients/100/orders",
                         HttpMethod.GET,
-                        null,
+                        new HttpEntity<>(headers),
                         new ParameterizedTypeReference<List<Order>>() {});
 
         assertThat(basketResponse.getStatusCode()).isEqualTo(HttpStatus.NOT_FOUND);
