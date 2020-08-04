@@ -13,7 +13,6 @@ import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.security.core.userdetails.UserDetails;
-import org.springframework.security.crypto.password.PasswordEncoder;
 
 import java.util.*;
 
@@ -25,9 +24,6 @@ public class ClientServiceTest {
     @Autowired
     private ClientService clientService;
 
-    @Autowired
-    private PasswordEncoder passwordEncoder;
-
     @MockBean
     private ClientRepo clientRepo;
 
@@ -36,6 +32,7 @@ public class ClientServiceTest {
     @BeforeEach
     public void init() {
         this.client = new Client("f@f","123456", "ABC", "DEF", "A");
+        this.client.setId(1L);
 
         Category books = new Category("Books");
         Category book = new Category("Book", books);
@@ -71,12 +68,12 @@ public class ClientServiceTest {
     @Test
     public void shouldThrowExceptionWhenFindClientByIncorrectId() {
         assertThrows(NoSuchElementException.class, () -> {
-            Client client = clientService.findById(1L);
+            Client client = clientService.findById(100L);
         });
 
         Mockito
                 .verify(clientRepo, Mockito.times(1))
-                .findById(1L);
+                .findById(100L);
     }
 
     @Test
@@ -186,22 +183,6 @@ public class ClientServiceTest {
         assertThat(client.getPassword()).isEqualTo("123456");
         Mockito.verify(clientRepo, Mockito.times(2))
                 .save(client);
-    }
-
-    @Test
-    public void shouldEncodePasswordWhenConfirmationCodeIsNotNull() {
-        client.setConfirmationCode("123");
-        clientService.save(client);
-
-        Mockito
-                .doReturn(client)
-                .when(clientRepo)
-                .findByLogin("A");
-
-        clientService.save(client);
-
-        assertThat(client.getConfirmationCode()).isNull();
-        assertThat(passwordEncoder.matches("123456", client.getPassword()));
     }
 
     @Test

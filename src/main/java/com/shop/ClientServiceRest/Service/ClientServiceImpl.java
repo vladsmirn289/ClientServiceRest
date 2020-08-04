@@ -9,6 +9,9 @@ import org.hibernate.Hibernate;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
+import org.springframework.cache.annotation.Caching;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -42,6 +45,7 @@ public class ClientServiceImpl implements ClientService {
 
     @Override
     @Transactional(readOnly = true)
+    @Cacheable(value = "clients")
     public Client findById(Long id) {
         logger.info("Find client by id - " + id);
         return clientRepo.findById(id).orElseThrow(NoSuchElementException::new);
@@ -49,6 +53,7 @@ public class ClientServiceImpl implements ClientService {
 
     @Override
     @Transactional(readOnly = true)
+    @Cacheable(value = "pagination")
     public Page<Client> findAll(Pageable pageable) {
         logger.info("Find all clients with pagination");
         return clientRepo.findAll(pageable);
@@ -56,6 +61,7 @@ public class ClientServiceImpl implements ClientService {
 
     @Override
     @Transactional(readOnly = true)
+    @Cacheable(value = "clients")
     public Client findByLogin(String login) {
         logger.info("Find client by login - " + login);
         return clientRepo.findByLogin(login);
@@ -95,20 +101,17 @@ public class ClientServiceImpl implements ClientService {
             }
         } else {
             logger.info("Update client");
-            if (client.getConfirmationCode() != null) {
-                String password = client.getPassword();
-                if (!password.startsWith("$2a$")) {
-                    client.setConfirmationCode(null);
-                    password = passwordEncoder.encode(password);
-                    client.setPassword(password);
-                }
-            }
         }
 
         clientRepo.save(client);
     }
 
     @Override
+    @Caching(
+            evict = {
+                    @CacheEvict(value = "clients", key = "#client.id"),
+                    @CacheEvict(value = "clients", key = "#client.login")
+    })
     public void delete(Client client) {
         logger.info("Deleting client with id = " + client.getId() + " from database");
         clientRepo.delete(client);
@@ -134,13 +137,14 @@ public class ClientServiceImpl implements ClientService {
     }
 
     @Override
+    @Cacheable(value = "clients")
     public UserDetails loadUserByUsername(String login) throws UsernameNotFoundException {
         logger.info("LoadingUserByUsername called");
         Client client = findByLogin(login);
 
         if (client == null) {
             logger.warn("Client with login - " + login + " not found");
-            throw new UsernameNotFoundException("Client not found");
+            return null;
         }
 
         return client;

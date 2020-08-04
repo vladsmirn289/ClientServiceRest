@@ -6,11 +6,13 @@ import com.shop.ClientServiceRest.Model.Client;
 import com.shop.ClientServiceRest.Model.ClientItem;
 import com.shop.ClientServiceRest.Model.Order;
 import com.shop.ClientServiceRest.Service.ClientService;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.web.client.TestRestTemplate;
+import org.springframework.cache.CacheManager;
 import org.springframework.context.annotation.PropertySource;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.*;
@@ -29,13 +31,13 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 @AutoConfigureMockMvc
 @PropertySource(value = "classpath:application.properties")
 @Sql(value = {
-        "classpath:db/H2/after-test.sql",
-        "classpath:db/H2/category-test.sql",
-        "classpath:db/H2/user-test.sql",
-        "classpath:db/H2/item-test.sql",
-        "classpath:db/H2/order-test.sql",
-        "classpath:db/H2/clientItem-test.sql",
-        "classpath:db/H2/basket-test.sql"},
+        "classpath:db/PostgreSQL/after-test.sql",
+        "classpath:db/PostgreSQL/category-test.sql",
+        "classpath:db/PostgreSQL/user-test.sql",
+        "classpath:db/PostgreSQL/item-test.sql",
+        "classpath:db/PostgreSQL/order-test.sql",
+        "classpath:db/PostgreSQL/clientItem-test.sql",
+        "classpath:db/PostgreSQL/basket-test.sql"},
         executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
 public class ClientRestTest {
     private final TestRestTemplate restTemplate = new TestRestTemplate();
@@ -45,6 +47,14 @@ public class ClientRestTest {
 
     @Autowired
     private ClientService clientService;
+
+    @Autowired
+    private CacheManager cacheManager;
+
+    @BeforeEach
+    public void init() {
+        cacheManager.getCache("clients").clear();
+    }
 
     private HttpHeaders getHeaderWithJwt(String name, String password) {
         AuthRequest authRequest = new AuthRequest(name, password);

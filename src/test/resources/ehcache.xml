@@ -1,0 +1,15 @@
+<ehcache xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:noNamespaceSchemaLocation="ehcache.xsd"
+         updateCheck="true"
+         monitoring="autodetect"
+         dynamicConfig="true">
+
+    <cache name="clients"
+           maxElementsInMemory="2"
+           eternal="true"/>
+
+    <cache name="pagination"
+           maxElementsInMemory="2"
+           eternal="true"/>
+
+</ehcache>

@@ -65,7 +65,6 @@
             <AppenderRef ref="infoLog"  />
             <AppenderRef ref="warningsLog" />
             <AppenderRef ref="errorLog" />
-            <AppenderRef ref="Console"  />
         </Logger>
 
         <Root level="info">
