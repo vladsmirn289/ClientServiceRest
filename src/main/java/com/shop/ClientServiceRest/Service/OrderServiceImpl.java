@@ -6,6 +6,7 @@ import com.shop.ClientServiceRest.Repository.OrderRepo;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -26,6 +27,7 @@ public class OrderServiceImpl implements OrderService {
 
     @Override
     @Transactional(readOnly = true)
+    @Cacheable(value = "pagination")
     public Page<Order> findOrdersForManagers(Pageable pageable) {
         logger.info("findOrdersForManagers method called");
         return orderRepo.findOrdersForManagers(pageable);
@@ -33,12 +35,14 @@ public class OrderServiceImpl implements OrderService {
 
     @Override
     @Transactional(readOnly = true)
+    @Cacheable(value = "pagination", key = "#pageable")
     public Page<Order> findOrdersByClient(Client client, Pageable pageable) {
         return orderRepo.findOrdersByClient(client, pageable);
     }
 
     @Override
     @Transactional(readOnly = true)
+    @Cacheable(value = "orders")
     public Order findById(Long id) {
         logger.info("findById method called for order with id = " + id);
         return orderRepo.findById(id).orElse(null);

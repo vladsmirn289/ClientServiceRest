@@ -9,6 +9,8 @@ import org.hibernate.Hibernate;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cache.Cache;
+import org.springframework.cache.CacheManager;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.cache.annotation.Caching;
@@ -16,7 +18,6 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
-import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -29,7 +30,7 @@ public class ClientServiceImpl implements ClientService {
     private static final Logger logger = LoggerFactory.getLogger(ClientServiceImpl.class);
 
     private ClientRepo clientRepo;
-    private PasswordEncoder passwordEncoder;
+    private CacheManager cacheManager;
 
     @Autowired
     public void setClientRepo(ClientRepo clientRepo) {
@@ -38,9 +39,8 @@ public class ClientServiceImpl implements ClientService {
     }
 
     @Autowired
-    public void setPasswordEncoder(PasswordEncoder passwordEncoder) {
-        logger.debug("Setting passwordEncoder");
-        this.passwordEncoder = passwordEncoder;
+    public void setCacheManager(CacheManager cacheManager) {
+        this.cacheManager = cacheManager;
     }
 
     @Override
@@ -75,6 +75,7 @@ public class ClientServiceImpl implements ClientService {
     }
 
     @Override
+    @Cacheable(value = "basket")
     public List<ClientItem> findBasketItemsByClientId(Long id) {
         logger.info("Find basket items by client id - " + id);
         Client client = clientRepo.findById(id).orElseThrow(NoSuchElementException::new);
@@ -84,6 +85,7 @@ public class ClientServiceImpl implements ClientService {
     }
 
     @Override
+    @Cacheable(value = "orders")
     public List<Order> findOrdersByClientId(Long id) {
         logger.info("Find orders by client id - " + id);
         Client client = clientRepo.findById(id).orElseThrow(NoSuchElementException::new);
@@ -121,12 +123,15 @@ public class ClientServiceImpl implements ClientService {
     public void deleteBasketItems(Set<ClientItem> itemSet, Long id) {
         logger.info("Called deleteBasketItems method");
         Client client = clientRepo.findById(id).orElseThrow(NoSuchElementException::new);
+        Cache cache = cacheManager.getCache("basket");
 
         Set<ClientItem> basketItems = client.getBasket()
                 .stream().map(clientItem -> {
             if (!itemSet.contains(clientItem)) {
                 return clientItem;
             } else {
+                if (cache != null)
+                    cache.evictIfPresent(clientItem);
                 return null;
             }
         }).filter(Objects::nonNull)
