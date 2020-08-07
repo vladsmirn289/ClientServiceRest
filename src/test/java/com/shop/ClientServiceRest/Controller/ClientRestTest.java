@@ -242,8 +242,7 @@ public class ClientRestTest {
                         "http://localhost:9002/api/clients/12",
                         HttpMethod.PUT,
                         new HttpEntity<>(client, headers),
-                        Client.class,
-                        headers);
+                        Client.class);
 
         assertThat(responseClient.getStatusCode()).isEqualTo(HttpStatus.OK);
         assertThat(responseClient.getBody()).isNotNull();

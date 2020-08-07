@@ -1,9 +1,10 @@
 package com.shop.ClientServiceRest.Controller;
 
 import com.shop.ClientServiceRest.Model.Client;
-import com.shop.ClientServiceRest.Model.ClientItem;
 import com.shop.ClientServiceRest.Model.Order;
+import com.shop.ClientServiceRest.Service.ClientItemService;
 import com.shop.ClientServiceRest.Service.ClientService;
+import com.shop.ClientServiceRest.Service.OrderService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.BeanUtils;
@@ -19,7 +20,6 @@ import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
-import java.util.HashSet;
 import java.util.List;
 import java.util.NoSuchElementException;
 
@@ -29,6 +29,8 @@ public class ClientController {
     private static final Logger logger = LoggerFactory.getLogger(ClientController.class);
 
     private ClientService clientService;
+    private ClientItemService clientItemService;
+    private OrderService orderService;
 
     private static final String ACCESS_BY_ID_OR_NOT_USER_ROLE = "#authClient.id == #id" +
             " || hasAnyRole('ADMIN', 'MANAGER')";
@@ -41,6 +43,18 @@ public class ClientController {
     public void setClientService(ClientService clientService) {
         logger.debug("Setting clientService");
         this.clientService = clientService;
+    }
+
+    @Autowired
+    public void setClientItemService(ClientItemService clientItemService) {
+        logger.debug("Setting clientItemService");
+        this.clientItemService = clientItemService;
+    }
+
+    @Autowired
+    public void setOrderService(OrderService orderService) {
+        logger.debug("Setting orderService");
+        this.orderService = orderService;
     }
 
     @GetMapping(params = {"page", "size"})
@@ -156,49 +170,16 @@ public class ClientController {
         }
     }
 
-    @GetMapping("/{id}/basket")
-    @PreAuthorize(ACCESS_BY_ID_OR_NOT_USER_ROLE)
-    public ResponseEntity<List<ClientItem>> getBasketByClientId(@AuthenticationPrincipal Client authClient,
-                                                                @PathVariable("id") Long id) {
-        logger.info("Called getBasketByClientId method");
+    @GetMapping(value = "/managerOrders", params = {"page", "size"})
+    @PreAuthorize("hasAnyRole('MANAGER', 'ADMIN')")
+    public ResponseEntity<List<Order>> getOrdersForManagers(@AuthenticationPrincipal Client authClient,
+                                                            @RequestParam("page") int page,
+                                                            @RequestParam("size") int size) {
+        logger.info("Called getOrdersForManagers");
 
-        try {
-            List<ClientItem> basket = clientService.findBasketItemsByClientId(id);
-            return new ResponseEntity<>(basket, HttpStatus.OK);
-        } catch (NoSuchElementException ex) {
-            logger.warn("Client with id - " + id + " not found");
-            logger.error(ex.toString());
-            return new ResponseEntity<>(null, HttpStatus.NOT_FOUND);
-        }
-    }
+        Pageable pageable = PageRequest.of(page, size, Sort.by("id"));
+        List<Order> orders = orderService.findOrdersForManagers(pageable).getContent();
 
-    @DeleteMapping("/{id}/basket")
-    @PreAuthorize(ACCESS_BY_ID_OR_NOT_USER_ROLE)
-    public void clearBasketByClientId(@AuthenticationPrincipal Client authClient,
-                                      @PathVariable("id") Long id) {
-        logger.info("Called clearBasketByClientId method");
-
-        List<ClientItem> basket = getBasketByClientId(authClient, id).getBody();
-        if (basket == null || basket.isEmpty()) {
-            return;
-        }
-
-        clientService.deleteBasketItems(new HashSet<>(basket), id);
-    }
-
-    @GetMapping("/{id}/orders")
-    @PreAuthorize(ACCESS_BY_ID_OR_NOT_USER_ROLE)
-    public ResponseEntity<List<Order>> getOrdersByClientId(@AuthenticationPrincipal Client authClient,
-                                                           @PathVariable("id") Long id) {
-        logger.info("Called getOrdersByClientId method");
-
-        try {
-            List<Order> orders = clientService.findOrdersByClientId(id);
-            return new ResponseEntity<>(orders, HttpStatus.OK);
-        } catch (NoSuchElementException ex) {
-            logger.warn("Client with id - " + id + " not found");
-            logger.error(ex.toString());
-            return new ResponseEntity<>(null, HttpStatus.NOT_FOUND);
-        }
+        return new ResponseEntity<>(orders, HttpStatus.OK);
     }
 }

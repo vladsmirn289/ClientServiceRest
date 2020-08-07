@@ -11,13 +11,12 @@ services:
       PGDATA: /var/lib/postgresql/data/pgdata
     volumes:
       - ./pg-data:/var/lib/postgresql/data
-      - ./data/V1__CreateDB.sql:/docker-entrypoint-initdb.d/1-schema.sql
-      - ./data/V2__InitDB.sql:/docker-entrypoint-initdb.d/2-init.sql
-      - ./data/V3__ChangeItemImage.sql:/docker-entrypoint-initdb.d/3-changeBinary.sql
+      - ./data/schema.sql:/docker-entrypoint-initdb.d/1-schema.sql
+      - ./data/data.sql:/docker-entrypoint-initdb.d/2-init.sql
     restart: always
-  testAuthService:
+  authService:
     image: vladsmirn289/authentication_service
-    container_name: testAuthService
+    container_name: authService
     ports:
       - 8081:8081
     environment:
@@ -25,9 +24,9 @@ services:
     restart: always
     links:
       - db
-  testClientService:
+  clientService:
     image: vladsmirn289/client_service_rest
-    container_name: testClientService
+    container_name: clientService
     ports:
       - 8082:8082
     environment:
