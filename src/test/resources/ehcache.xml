@@ -8,6 +8,14 @@
            maxElementsInMemory="2"
            eternal="true"/>
 
+    <cache name="orders"
+           maxElementsInMemory="2"
+           eternal="true"/>
+
+    <cache name="basket"
+           maxElementsInMemory="2"
+           eternal="true"/>
+
     <cache name="pagination"
            maxElementsInMemory="2"
            eternal="true"/>

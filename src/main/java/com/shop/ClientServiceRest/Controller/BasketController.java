@@ -108,10 +108,10 @@ public class BasketController {
     @PutMapping("/{item_id}")
     @PreAuthorize(ACCESS_BY_ID_OR_NOT_USER_ROLE)
     public ResponseEntity<ClientItem> updateItemInBasket(@AuthenticationPrincipal Client authClient,
-                                                    @PathVariable("id") Long id,
-                                                    @PathVariable("item_id") Long itemId,
-                                                    @RequestBody @Valid ClientItem clientItem,
-                                                    BindingResult bindingResult) {
+                                                         @PathVariable("id") Long id,
+                                                         @PathVariable("item_id") Long itemId,
+                                                         @RequestBody @Valid ClientItem clientItem,
+                                                         BindingResult bindingResult) {
         logger.info("Called updateItemInBasket method");
 
         if (bindingResult.hasErrors()) {
@@ -132,7 +132,8 @@ public class BasketController {
         }
     }
 
-    @PostMapping(params = {"quantity"})
+    @PostMapping
+    @PreAuthorize(ACCESS_BY_ID_OR_NOT_USER_ROLE)
     public ResponseEntity<ClientItem> addItemToBasket(@AuthenticationPrincipal Client authClient,
                                                       @PathVariable("id") Long id,
                                                       @RequestBody @Valid ClientItem clientItem,
@@ -144,7 +145,9 @@ public class BasketController {
             return new ResponseEntity<>(clientItem, HttpStatus.BAD_REQUEST);
         }
 
-        authClient.getBasket().add(clientItem);
+        List<ClientItem> basket = clientService.findBasketItemsByClientId(id);
+        basket.add(clientItem);
+        authClient.setBasket(new HashSet<>(basket));
         clientService.save(authClient);
 
         return new ResponseEntity<>(clientItem, HttpStatus.OK);

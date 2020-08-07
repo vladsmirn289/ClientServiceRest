@@ -8,6 +8,7 @@ import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.cache.CacheManager;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
@@ -24,6 +25,9 @@ public class ClientServiceTest {
     @Autowired
     private ClientService clientService;
 
+    @Autowired
+    private CacheManager cacheManager;
+
     @MockBean
     private ClientRepo clientRepo;
 
@@ -31,6 +35,11 @@ public class ClientServiceTest {
 
     @BeforeEach
     public void init() {
+        cacheManager.getCache("clients").clear();
+        cacheManager.getCache("basket").clear();
+        cacheManager.getCache("orders").clear();
+        cacheManager.getCache("pagination").clear();
+
         this.client = new Client("f@f","123456", "ABC", "DEF", "A");
         this.client.setId(1L);
 

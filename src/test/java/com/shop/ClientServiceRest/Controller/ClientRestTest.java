@@ -3,7 +3,6 @@ package com.shop.ClientServiceRest.Controller;
 import com.shop.ClientServiceRest.DTO.AuthRequest;
 import com.shop.ClientServiceRest.DTO.AuthResponse;
 import com.shop.ClientServiceRest.Model.Client;
-import com.shop.ClientServiceRest.Model.ClientItem;
 import com.shop.ClientServiceRest.Model.Order;
 import com.shop.ClientServiceRest.Service.ClientService;
 import org.junit.jupiter.api.BeforeEach;
@@ -54,12 +53,15 @@ public class ClientRestTest {
     @BeforeEach
     public void init() {
         cacheManager.getCache("clients").clear();
+        cacheManager.getCache("basket").clear();
+        cacheManager.getCache("orders").clear();
+        cacheManager.getCache("pagination").clear();
     }
 
     private HttpHeaders getHeaderWithJwt(String name, String password) {
         AuthRequest authRequest = new AuthRequest(name, password);
         AuthResponse authResponse = restTemplate.postForEntity(
-                "http://localhost:9001/api/authentication",
+                "http://localhost:9001/auth-server-swagger/api/authentication",
                 authRequest,
                 AuthResponse.class).getBody();
 
@@ -378,15 +380,15 @@ public class ClientRestTest {
 
     @Test
     void shouldDeleteClientById() {
-        HttpHeaders headers = getHeaderWithJwt("simpleUser", "12345");
+        HttpHeaders headers = getHeaderWithJwt("admin", "01112");
 
         restTemplate.exchange(
-                "http://localhost:9002/api/clients/12",
+                "http://localhost:9002/api/clients/15",
                 HttpMethod.DELETE,
                 new HttpEntity<>(headers),
                 Object.class);
 
-        assertThrows(NoSuchElementException.class, () -> clientService.findById(12L));
+        assertThrows(NoSuchElementException.class, () -> clientService.findById(15L));
     }
 
     @Test
@@ -405,100 +407,38 @@ public class ClientRestTest {
     }
 
     @Test
-    void shouldSuccessGetBasketByClientId() {
-        HttpHeaders headers = getHeaderWithJwt("simpleUser", "12345");
+    void shouldGetOrdersForManagers() {
+        HttpHeaders headers = getHeaderWithJwt("manager", "67891");
 
-        ResponseEntity<List<ClientItem>> basketResponse =
+        ResponseEntity<List<Order>> responseOrders =
                 restTemplate.exchange(
-                        "http://localhost:9002/api/clients/12/basket",
+                        "http://localhost:9002/api/clients/managerOrders?page=0&size=5",
                         HttpMethod.GET,
                         new HttpEntity<>(headers),
-                        new ParameterizedTypeReference<List<ClientItem>>() {});
+                        new ParameterizedTypeReference<List<Order>>(){});
 
-        assertThat(basketResponse.getStatusCode()).isEqualTo(HttpStatus.OK);
-        assertThat(basketResponse.getBody()).isNotNull();
+        assertThat(responseOrders.getStatusCode()).isEqualTo(HttpStatus.OK);
+        assertThat(responseOrders.getBody()).isNotNull();
 
-        List<ClientItem> clientItems = basketResponse.getBody();
-        assertThat(clientItems.size()).isEqualTo(2);
+        List<Order> orders = responseOrders.getBody();
+        assertThat(orders.size()).isEqualTo(2);
     }
 
     @Test
-    void shouldNotFoundWhenTryToGetBasketByClientWithIncorrectId() {
-        HttpHeaders headers = getHeaderWithJwt("admin", "01112");
+    void shouldGetOrderById() {
+        HttpHeaders headers = getHeaderWithJwt("manager", "67891");
 
-        ResponseEntity<List<ClientItem>> basketResponse =
+        ResponseEntity<Order> responseOrders =
                 restTemplate.exchange(
-                        "http://localhost:9002/api/clients/100/basket",
+                        "http://localhost:9002/api/clients/orders/20",
                         HttpMethod.GET,
                         new HttpEntity<>(headers),
-                        new ParameterizedTypeReference<List<ClientItem>>() {});
+                        new ParameterizedTypeReference<Order>(){});
 
-        assertThat(basketResponse.getStatusCode()).isEqualTo(HttpStatus.NOT_FOUND);
-        assertThat(basketResponse.getBody()).isNull();
-    }
+        assertThat(responseOrders.getStatusCode()).isEqualTo(HttpStatus.OK);
+        assertThat(responseOrders.getBody()).isNotNull();
 
-    @Test
-    void shouldSuccessDeleteBasketByClientId() {
-        HttpHeaders headers = getHeaderWithJwt("simpleUser", "12345");
-
-        restTemplate.exchange(
-                "http://localhost:9002/api/clients/12/basket",
-                HttpMethod.DELETE,
-                new HttpEntity<>(headers),
-                Object.class);
-
-        ResponseEntity<List<ClientItem>> basketResponse =
-                restTemplate.exchange(
-                        "http://localhost:9002/api/clients/12/basket",
-                        HttpMethod.GET,
-                        new HttpEntity<>(headers),
-                        new ParameterizedTypeReference<List<ClientItem>>() {});
-
-        assertThat(basketResponse.getBody()).isNotNull();
-        assertThat(basketResponse.getBody().size()).isEqualTo(0);
-    }
-
-    @Test
-    void shouldDoNothingWhenTryToDeleteBasketByIncorrectData() {
-        HttpHeaders headers = getHeaderWithJwt("admin", "01112");
-
-        restTemplate.exchange(
-                "http://localhost:9002/api/13/basket",
-                HttpMethod.DELETE,
-                new HttpEntity<>(headers),
-                Object.class);
-    }
-
-    @Test
-    void shouldSuccessGetOrdersByClientId() {
-        HttpHeaders headers = getHeaderWithJwt("simpleUser", "12345");
-
-        ResponseEntity<List<Order>> basketResponse =
-                restTemplate.exchange(
-                        "http://localhost:9002/api/clients/12/orders",
-                        HttpMethod.GET,
-                        new HttpEntity<>(headers),
-                        new ParameterizedTypeReference<List<Order>>() {});
-
-        assertThat(basketResponse.getStatusCode()).isEqualTo(HttpStatus.OK);
-        assertThat(basketResponse.getBody()).isNotNull();
-
-        List<Order> clientItems = basketResponse.getBody();
-        assertThat(clientItems.size()).isEqualTo(2);
-    }
-
-    @Test
-    void shouldNotFoundWhenTryToGetOrdersByClientWithIncorrectId() {
-        HttpHeaders headers = getHeaderWithJwt("admin", "01112");
-
-        ResponseEntity<List<Order>> basketResponse =
-                restTemplate.exchange(
-                        "http://localhost:9002/api/clients/100/orders",
-                        HttpMethod.GET,
-                        new HttpEntity<>(headers),
-                        new ParameterizedTypeReference<List<Order>>() {});
-
-        assertThat(basketResponse.getStatusCode()).isEqualTo(HttpStatus.NOT_FOUND);
-        assertThat(basketResponse.getBody()).isNull();
+        Order order = responseOrders.getBody();
+        assertThat(order.getContacts().getCity()).isEqualTo("Южноуральск");
     }
 }

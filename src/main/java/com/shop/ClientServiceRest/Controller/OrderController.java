@@ -71,7 +71,15 @@ public class OrderController {
             return new ResponseEntity<>(null, HttpStatus.NOT_FOUND);
         }
 
-        return new ResponseEntity<>(order, HttpStatus.OK);
+        List<Order> orders = clientService.findOrdersByClientId(id);
+        for (Order o : orders) {
+            if (o.getId().equals(orderId)) {
+                return new ResponseEntity<>(o, HttpStatus.OK);
+            }
+        }
+
+        logger.warn("Client with id -" + id + " not contain order with id - " + orderId);
+        return new ResponseEntity<>(null, HttpStatus.NOT_FOUND);
     }
 
     @PutMapping("/{order_id}")
@@ -94,7 +102,7 @@ public class OrderController {
             BeanUtils.copyProperties(order, persistentOrder, "id");
             orderService.save(persistentOrder);
             return new ResponseEntity<>(persistentOrder, HttpStatus.OK);
-        } catch (NoSuchElementException ex) {
+        } catch (NoSuchElementException | NullPointerException ex) {
             logger.warn("Order with id - " + orderId + " not found");
             logger.error(ex.toString());
             return new ResponseEntity<>(null, HttpStatus.NOT_FOUND);

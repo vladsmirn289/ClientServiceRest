@@ -6,6 +6,7 @@ import com.shop.ClientServiceRest.Repository.OrderRepo;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -55,6 +56,7 @@ public class OrderServiceImpl implements OrderService {
     }
 
     @Override
+    @CacheEvict(value = "orders", key = "#order.id")
     public void delete(Order order) {
         logger.info("Deleting order with id = " + order.getId() + " from database");
         orderRepo.delete(order);

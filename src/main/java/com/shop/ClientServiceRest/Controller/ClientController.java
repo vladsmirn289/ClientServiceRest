@@ -2,7 +2,6 @@ package com.shop.ClientServiceRest.Controller;
 
 import com.shop.ClientServiceRest.Model.Client;
 import com.shop.ClientServiceRest.Model.Order;
-import com.shop.ClientServiceRest.Service.ClientItemService;
 import com.shop.ClientServiceRest.Service.ClientService;
 import com.shop.ClientServiceRest.Service.OrderService;
 import org.slf4j.Logger;
@@ -29,7 +28,6 @@ public class ClientController {
     private static final Logger logger = LoggerFactory.getLogger(ClientController.class);
 
     private ClientService clientService;
-    private ClientItemService clientItemService;
     private OrderService orderService;
 
     private static final String ACCESS_BY_ID_OR_NOT_USER_ROLE = "#authClient.id == #id" +
@@ -43,12 +41,6 @@ public class ClientController {
     public void setClientService(ClientService clientService) {
         logger.debug("Setting clientService");
         this.clientService = clientService;
-    }
-
-    @Autowired
-    public void setClientItemService(ClientItemService clientItemService) {
-        logger.debug("Setting clientItemService");
-        this.clientItemService = clientItemService;
     }
 
     @Autowired
@@ -175,11 +167,27 @@ public class ClientController {
     public ResponseEntity<List<Order>> getOrdersForManagers(@AuthenticationPrincipal Client authClient,
                                                             @RequestParam("page") int page,
                                                             @RequestParam("size") int size) {
-        logger.info("Called getOrdersForManagers");
+        logger.info("Called getOrdersForManagers method");
 
         Pageable pageable = PageRequest.of(page, size, Sort.by("id"));
         List<Order> orders = orderService.findOrdersForManagers(pageable).getContent();
 
         return new ResponseEntity<>(orders, HttpStatus.OK);
+    }
+
+    @GetMapping("/orders/{order_id}")
+    @PreAuthorize("hasAnyRole('MANAGER', 'ADMIN')")
+    public ResponseEntity<Order> getOrderById(@AuthenticationPrincipal Client authClient,
+                                              @PathVariable("order_id") Long orderId) {
+        logger.info("Called getOrderById method");
+
+        Order order = orderService.findById(orderId);
+
+        if (order == null) {
+            logger.warn("Order with id - " + orderId + " not found");
+            return new ResponseEntity<>(null, HttpStatus.NOT_FOUND);
+        }
+
+        return new ResponseEntity<>(order, HttpStatus.OK);
     }
 }
