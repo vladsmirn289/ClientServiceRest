@@ -77,7 +77,7 @@ public class ClientRestTest {
 
         ResponseEntity<List<Client>> responseClients =
                 restTemplate.exchange(
-                        "http://localhost:9002/api/clients?page=0&size=2",
+                        "http://localhost:9002/client-rest-swagger/api/clients?page=0&size=2",
                         HttpMethod.GET,
                         new HttpEntity<>(headers),
                         new ParameterizedTypeReference<List<Client>>(){});
@@ -115,7 +115,7 @@ public class ClientRestTest {
 
         ResponseEntity<Client> responseClient =
                 restTemplate.exchange(
-                        "http://localhost:9002/api/clients/12",
+                        "http://localhost:9002/client-rest-swagger/api/clients/12",
                         HttpMethod.GET,
                         new HttpEntity<>(headers),
                         Client.class);
@@ -140,7 +140,7 @@ public class ClientRestTest {
 
         ResponseEntity<Client> responseClient =
                 restTemplate.exchange(
-                        "http://localhost:9002/api/clients/200",
+                        "http://localhost:9002/client-rest-swagger/api/clients/200",
                         HttpMethod.GET,
                         new HttpEntity<>(headers),
                         Client.class);
@@ -155,7 +155,7 @@ public class ClientRestTest {
 
         ResponseEntity<Client> responseClient =
                 restTemplate.exchange(
-                        "http://localhost:9002/api/clients/byLogin/simpleUser",
+                        "http://localhost:9002/client-rest-swagger/api/clients/byLogin/simpleUser",
                         HttpMethod.GET,
                         new HttpEntity<>(headers),
                         Client.class);
@@ -180,7 +180,7 @@ public class ClientRestTest {
 
         ResponseEntity<Client> responseClient =
                 restTemplate.exchange(
-                        "http://localhost:9002/api/clients/byLogin/incorrect",
+                        "http://localhost:9002/client-rest-swagger/api/clients/byLogin/incorrect",
                         HttpMethod.GET,
                         new HttpEntity<>(headers),
                         Client.class);
@@ -196,7 +196,7 @@ public class ClientRestTest {
 
         ResponseEntity<Client> responseClient =
                 restTemplate.exchange(
-                        "http://localhost:9002/api/clients/byConfirmCode/123",
+                        "http://localhost:9002/client-rest-swagger/api/clients/byConfirmCode/123",
                         HttpMethod.GET,
                         new HttpEntity<>(headers),
                         Client.class);
@@ -221,7 +221,7 @@ public class ClientRestTest {
 
         ResponseEntity<Client> responseClient =
                 restTemplate.exchange(
-                        "http://localhost:9002/api/clients/byConfirmCode/1234567890",
+                        "http://localhost:9002/client-rest-swagger/api/clients/byConfirmCode/1234567890",
                         HttpMethod.GET,
                         new HttpEntity<>(headers),
                         Client.class);
@@ -241,7 +241,7 @@ public class ClientRestTest {
 
         ResponseEntity<Client> responseClient =
                 restTemplate.exchange(
-                        "http://localhost:9002/api/clients/12",
+                        "http://localhost:9002/client-rest-swagger/api/clients/12",
                         HttpMethod.PUT,
                         new HttpEntity<>(client, headers),
                         Client.class);
@@ -271,7 +271,7 @@ public class ClientRestTest {
 
         ResponseEntity<Client> responseClient =
                 restTemplate.exchange(
-                        "http://localhost:9002/api/clients/12",
+                        "http://localhost:9002/client-rest-swagger/api/clients/12",
                         HttpMethod.PUT,
                         new HttpEntity<>(client, headers),
                         Client.class);
@@ -301,7 +301,7 @@ public class ClientRestTest {
 
         ResponseEntity<Client> responseClient =
                 restTemplate.exchange(
-                        "http://localhost:9002/api/clients/200",
+                        "http://localhost:9002/client-rest-swagger/api/clients/200",
                         HttpMethod.PUT,
                         new HttpEntity<>(client, headers),
                         Client.class);
@@ -325,7 +325,7 @@ public class ClientRestTest {
 
         ResponseEntity<Client> responseClient =
                 restTemplate.exchange(
-                        "http://localhost:9002/api/clients",
+                        "http://localhost:9002/client-rest-swagger/api/clients",
                         HttpMethod.POST,
                         httpEntity,
                         Client.class);
@@ -359,7 +359,7 @@ public class ClientRestTest {
 
         ResponseEntity<Client> responseClient =
                 restTemplate.exchange(
-                        "http://localhost:9002/api/clients",
+                        "http://localhost:9002/client-rest-swagger/api/clients",
                         HttpMethod.POST,
                         httpEntity,
                         Client.class);
@@ -383,7 +383,7 @@ public class ClientRestTest {
         HttpHeaders headers = getHeaderWithJwt("admin", "01112");
 
         restTemplate.exchange(
-                "http://localhost:9002/api/clients/15",
+                "http://localhost:9002/client-rest-swagger/api/clients/15",
                 HttpMethod.DELETE,
                 new HttpEntity<>(headers),
                 Object.class);
@@ -396,7 +396,7 @@ public class ClientRestTest {
         HttpHeaders headers = getHeaderWithJwt("admin", "01112");
 
         restTemplate.exchange(
-                "http://localhost:9002/api/clients/100",
+                "http://localhost:9002/client-rest-swagger/api/clients/100",
                 HttpMethod.DELETE,
                 new HttpEntity<>(headers),
                 Object.class);
@@ -412,7 +412,7 @@ public class ClientRestTest {
 
         ResponseEntity<List<Order>> responseOrders =
                 restTemplate.exchange(
-                        "http://localhost:9002/api/clients/managerOrders?page=0&size=5",
+                        "http://localhost:9002/client-rest-swagger/api/clients/managerOrders?page=0&size=5",
                         HttpMethod.GET,
                         new HttpEntity<>(headers),
                         new ParameterizedTypeReference<List<Order>>(){});
@@ -430,7 +430,7 @@ public class ClientRestTest {
 
         ResponseEntity<Order> responseOrders =
                 restTemplate.exchange(
-                        "http://localhost:9002/api/clients/orders/20",
+                        "http://localhost:9002/client-rest-swagger/api/clients/orders/20",
                         HttpMethod.GET,
                         new HttpEntity<>(headers),
                         new ParameterizedTypeReference<Order>(){});

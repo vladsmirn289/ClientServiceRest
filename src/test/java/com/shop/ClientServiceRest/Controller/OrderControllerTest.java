@@ -80,7 +80,7 @@ public class OrderControllerTest {
 
         ResponseEntity<List<Order>> orderResponse =
                 restTemplate.exchange(
-                        "http://localhost:9002/api/clients/12/orders?page=0&size=5",
+                        "http://localhost:9002/client-rest-swagger/api/clients/12/orders?page=0&size=5",
                         HttpMethod.GET,
                         new HttpEntity<>(headers),
                         new ParameterizedTypeReference<List<Order>>() {});
@@ -98,7 +98,7 @@ public class OrderControllerTest {
 
         ResponseEntity<Order> orderResponse =
                 restTemplate.exchange(
-                        "http://localhost:9002/api/clients/12/orders/20",
+                        "http://localhost:9002/client-rest-swagger/api/clients/12/orders/20",
                         HttpMethod.GET,
                         new HttpEntity<>(headers),
                         new ParameterizedTypeReference<Order>() {});
@@ -116,7 +116,7 @@ public class OrderControllerTest {
 
         ResponseEntity<Order> orderResponse =
                 restTemplate.exchange(
-                        "http://localhost:9002/api/clients/12/orders/21",
+                        "http://localhost:9002/client-rest-swagger/api/clients/12/orders/21",
                         HttpMethod.GET,
                         new HttpEntity<>(headers),
                         new ParameterizedTypeReference<Order>() {});
@@ -135,7 +135,7 @@ public class OrderControllerTest {
 
         ResponseEntity<Order> responseOrder =
                 restTemplate.exchange(
-                        "http://localhost:9002/api/clients/12/orders/20",
+                        "http://localhost:9002/client-rest-swagger/api/clients/12/orders/20",
                         HttpMethod.PUT,
                         new HttpEntity<>(order, headers),
                         Order.class);
@@ -158,7 +158,7 @@ public class OrderControllerTest {
 
         ResponseEntity<Order> responseOrder =
                 restTemplate.exchange(
-                        "http://localhost:9002/api/clients/12/orders/20",
+                        "http://localhost:9002/client-rest-swagger/api/clients/12/orders/20",
                         HttpMethod.PUT,
                         new HttpEntity<>(order, headers),
                         Order.class);
@@ -186,7 +186,7 @@ public class OrderControllerTest {
 
         ResponseEntity<Order> responseOrder =
                 restTemplate.exchange(
-                        "http://localhost:9002/api/clients/12/orders",
+                        "http://localhost:9002/client-rest-swagger/api/clients/12/orders",
                         HttpMethod.POST,
                         new HttpEntity<>(order, headers),
                         Order.class);
@@ -215,7 +215,7 @@ public class OrderControllerTest {
 
         ResponseEntity<Order> responseOrder =
                 restTemplate.exchange(
-                        "http://localhost:9002/api/clients/12/orders",
+                        "http://localhost:9002/client-rest-swagger/api/clients/12/orders",
                         HttpMethod.POST,
                         new HttpEntity<>(order, headers),
                         Order.class);
@@ -236,7 +236,7 @@ public class OrderControllerTest {
         HttpHeaders headers = getHeaderWithJwt("simpleUser", "12345");
 
         restTemplate.exchange(
-                "http://localhost:9002/api/clients/12/orders/19",
+                "http://localhost:9002/client-rest-swagger/api/clients/12/orders/19",
                 HttpMethod.DELETE,
                 new HttpEntity<>(headers),
                 Object.class);
@@ -250,7 +250,7 @@ public class OrderControllerTest {
         HttpHeaders headers = getHeaderWithJwt("simpleUser", "12345");
 
         restTemplate.exchange(
-                "http://localhost:9002/api/clients/12/orders",
+                "http://localhost:9002/client-rest-swagger/api/clients/12/orders",
                 HttpMethod.DELETE,
                 new HttpEntity<>(headers),
                 Object.class);

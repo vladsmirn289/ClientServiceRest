@@ -78,7 +78,7 @@ public class BasketControllerTest {
 
         ResponseEntity<List<ClientItem>> basketResponse =
                 restTemplate.exchange(
-                        "http://localhost:9002/api/clients/12/basket",
+                        "http://localhost:9002/client-rest-swagger/api/clients/12/basket",
                         HttpMethod.GET,
                         new HttpEntity<>(headers),
                         new ParameterizedTypeReference<List<ClientItem>>() {});
@@ -96,7 +96,7 @@ public class BasketControllerTest {
 
         ResponseEntity<List<ClientItem>> basketResponse =
                 restTemplate.exchange(
-                        "http://localhost:9002/api/clients/100/basket",
+                        "http://localhost:9002/client-rest-swagger/api/clients/100/basket",
                         HttpMethod.GET,
                         new HttpEntity<>(headers),
                         new ParameterizedTypeReference<List<ClientItem>>() {});
@@ -111,7 +111,7 @@ public class BasketControllerTest {
 
         ResponseEntity<Double> basketResponse =
                 restTemplate.exchange(
-                        "http://localhost:9002/api/clients/12/basket/generalPrice",
+                        "http://localhost:9002/client-rest-swagger/api/clients/12/basket/generalPrice",
                         HttpMethod.GET,
                         new HttpEntity<>(headers),
                         new ParameterizedTypeReference<Double>() {});
@@ -129,16 +129,13 @@ public class BasketControllerTest {
 
         ResponseEntity<Double> basketResponse =
                 restTemplate.exchange(
-                        "http://localhost:9002/api/clients/100/basket/generalPrice",
+                        "http://localhost:9002/client-rest-swagger/api/clients/100/basket/generalPrice",
                         HttpMethod.GET,
                         new HttpEntity<>(headers),
-                        new ParameterizedTypeReference<Double>() {});
+                        Double.class);
 
-        assertThat(basketResponse.getStatusCode()).isEqualTo(HttpStatus.OK);
-        assertThat(basketResponse.getBody()).isNotNull();
-
-        Double generalPrice = basketResponse.getBody();
-        assertThat(generalPrice).isEqualTo(0);
+        assertThat(basketResponse.getStatusCode()).isEqualTo(HttpStatus.NOT_FOUND);
+        assertThat(basketResponse.getBody()).isNull();
     }
 
     @Test
@@ -147,7 +144,7 @@ public class BasketControllerTest {
 
         ResponseEntity<Double> basketResponse =
                 restTemplate.exchange(
-                        "http://localhost:9002/api/clients/12/basket/generalWeight",
+                        "http://localhost:9002/client-rest-swagger/api/clients/12/basket/generalWeight",
                         HttpMethod.GET,
                         new HttpEntity<>(headers),
                         new ParameterizedTypeReference<Double>() {});
@@ -165,16 +162,13 @@ public class BasketControllerTest {
 
         ResponseEntity<Double> basketResponse =
                 restTemplate.exchange(
-                        "http://localhost:9002/api/clients/100/basket/generalWeight",
+                        "http://localhost:9002/client-rest-swagger/api/clients/100/basket/generalWeight",
                         HttpMethod.GET,
                         new HttpEntity<>(headers),
                         new ParameterizedTypeReference<Double>() {});
 
-        assertThat(basketResponse.getStatusCode()).isEqualTo(HttpStatus.OK);
-        assertThat(basketResponse.getBody()).isNotNull();
-
-        Double generalPrice = basketResponse.getBody();
-        assertThat(generalPrice).isEqualTo(0);
+        assertThat(basketResponse.getStatusCode()).isEqualTo(HttpStatus.NOT_FOUND);
+        assertThat(basketResponse.getBody()).isNull();
     }
 
     @Test
@@ -183,7 +177,7 @@ public class BasketControllerTest {
 
         ResponseEntity<ClientItem> responseClientItem =
                 restTemplate.exchange(
-                        "http://localhost:9002/api/clients/12/basket/30",
+                        "http://localhost:9002/client-rest-swagger/api/clients/12/basket/30",
                         HttpMethod.GET,
                         new HttpEntity<>(headers),
                         ClientItem.class);
@@ -204,7 +198,7 @@ public class BasketControllerTest {
 
         ResponseEntity<ClientItem> responseClientItem =
                 restTemplate.exchange(
-                        "http://localhost:9002/api/clients/12/basket/100",
+                        "http://localhost:9002/client-rest-swagger/api/clients/12/basket/100",
                         HttpMethod.GET,
                         new HttpEntity<>(headers),
                         ClientItem.class);
@@ -224,7 +218,7 @@ public class BasketControllerTest {
 
         ResponseEntity<ClientItem> responseClientItem =
                 restTemplate.exchange(
-                        "http://localhost:9002/api/clients/12/basket/16",
+                        "http://localhost:9002/client-rest-swagger/api/clients/12/basket/16",
                         HttpMethod.PUT,
                         new HttpEntity<>(clientItem, headers),
                         ClientItem.class);
@@ -247,7 +241,7 @@ public class BasketControllerTest {
 
         ResponseEntity<ClientItem> responseClientItem =
                 restTemplate.exchange(
-                        "http://localhost:9002/api/clients/12/basket/16",
+                        "http://localhost:9002/client-rest-swagger/api/clients/12/basket/16",
                         HttpMethod.PUT,
                         new HttpEntity<>(clientItem, headers),
                         ClientItem.class);
@@ -268,7 +262,7 @@ public class BasketControllerTest {
 
         ResponseEntity<ClientItem> responseClientItem =
                 restTemplate.exchange(
-                        "http://localhost:9002/api/clients/12/basket",
+                        "http://localhost:9002/client-rest-swagger/api/clients/12/basket",
                         HttpMethod.POST,
                         new HttpEntity<>(clientItem, headers),
                         ClientItem.class);
@@ -293,7 +287,7 @@ public class BasketControllerTest {
 
         ResponseEntity<ClientItem> responseClientItem =
                 restTemplate.exchange(
-                        "http://localhost:9002/api/clients/12/basket",
+                        "http://localhost:9002/client-rest-swagger/api/clients/12/basket",
                         HttpMethod.POST,
                         new HttpEntity<>(clientItem, headers),
                         ClientItem.class);
@@ -314,7 +308,7 @@ public class BasketControllerTest {
         HttpHeaders headers = getHeaderWithJwt("simpleUser", "12345");
 
         restTemplate.exchange(
-                "http://localhost:9002/api/clients/12/basket/30",
+                "http://localhost:9002/client-rest-swagger/api/clients/12/basket/30",
                 HttpMethod.DELETE,
                 new HttpEntity<>(headers),
                 Object.class);
@@ -328,7 +322,7 @@ public class BasketControllerTest {
         HttpHeaders headers = getHeaderWithJwt("admin", "01112");
 
         restTemplate.exchange(
-                "http://localhost:9002/api/clients/12/basket/100",
+                "http://localhost:9002/client-rest-swagger/api/clients/12/basket/100",
                 HttpMethod.DELETE,
                 new HttpEntity<>(headers),
                 Object.class);
@@ -342,7 +336,7 @@ public class BasketControllerTest {
         HttpHeaders headers = getHeaderWithJwt("simpleUser", "12345");
 
         restTemplate.exchange(
-                "http://localhost:9002/api/clients/12/basket",
+                "http://localhost:9002/client-rest-swagger/api/clients/12/basket",
                 HttpMethod.DELETE,
                 new HttpEntity<>(headers),
                 Object.class);

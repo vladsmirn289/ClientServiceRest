@@ -14,12 +14,10 @@ import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 @SpringBootTest
 public class OrderServiceTest {
@@ -107,9 +105,8 @@ public class OrderServiceTest {
 
     @Test
     public void shouldReturnNullWhenFindOrderByIncorrectId() {
-        Order order1 = orderService.findById(1L);
+        assertThrows(NoSuchElementException.class, () -> orderService.findById(1L));
 
-        assertThat(order1).isNull();
         Mockito.verify(orderRepo, Mockito.times(1))
                 .findById(1L);
     }

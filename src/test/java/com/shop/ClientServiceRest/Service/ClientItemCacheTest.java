@@ -1,7 +1,6 @@
 package com.shop.ClientServiceRest.Service;
 
 import com.shop.ClientServiceRest.Model.ClientItem;
-import com.shop.ClientServiceRest.Model.Order;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -9,9 +8,6 @@ import org.springframework.cache.Cache;
 import org.springframework.cache.CacheManager;
 import org.springframework.context.annotation.PropertySource;
 import org.springframework.test.context.jdbc.Sql;
-
-import java.util.ArrayList;
-import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -28,25 +24,10 @@ import static org.assertj.core.api.Assertions.assertThat;
         executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
 public class ClientItemCacheTest {
     @Autowired
-    private ClientService clientService;
-
-    @Autowired
     private ClientItemService clientItemService;
 
     @Autowired
     private CacheManager cacheManager;
-
-    @Test
-    public void findBasketItemsByIdCachingTest() {
-        clientService.findBasketItemsByClientId(12L);
-
-        Cache cache = cacheManager.getCache("basket");
-        assertThat(cache).isNotNull();
-
-        List<ClientItem> basket = cache.get(12L, ArrayList.class);
-        assertThat(basket).isNotNull();
-        assertThat(basket.size()).isEqualTo(2);
-    }
 
     @Test
     public void findByIdCachingTest() {

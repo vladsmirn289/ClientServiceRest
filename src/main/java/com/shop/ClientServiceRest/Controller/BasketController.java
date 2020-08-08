@@ -71,7 +71,16 @@ public class BasketController {
     public ResponseEntity<Double> calcGeneralPriceOfBasket(@ApiIgnore @AuthenticationPrincipal Client authClient,
                                                            @PathVariable("id") Long id) {
         logger.info("Called calcGeneralPriceOfBasket method");
-        Client client = clientService.findById(id);
+
+        Client client;
+        try {
+            client = clientService.findById(id);
+        } catch (NoSuchElementException ex) {
+            logger.warn("Client with id - " + id + " not found");
+            logger.error(ex.toString());
+            return new ResponseEntity<>(null, HttpStatus.NOT_FOUND);
+        }
+
         List<ClientItem> basket = getBasketByClientId(client, id).getBody();
         if (basket == null) {
             return new ResponseEntity<>(0D, HttpStatus.OK);
@@ -87,7 +96,16 @@ public class BasketController {
     public ResponseEntity<Double> calcGeneralWeightOfBasket(@ApiIgnore @AuthenticationPrincipal Client authClient,
                                                             @PathVariable("id") Long id) {
         logger.info("Called calcGeneralWeightOfBasket method");
-        Client client = clientService.findById(id);
+
+        Client client;
+        try {
+            client = clientService.findById(id);
+        } catch (NoSuchElementException ex) {
+            logger.warn("Client with id - " + id + " not found");
+            logger.error(ex.toString());
+            return new ResponseEntity<>(null, HttpStatus.NOT_FOUND);
+        }
+
         List<ClientItem> basket = getBasketByClientId(client, id).getBody();
         if (basket == null) {
             return new ResponseEntity<>(0D, HttpStatus.OK);
@@ -173,7 +191,6 @@ public class BasketController {
             return new ResponseEntity<>(clientItem, HttpStatus.BAD_REQUEST);
         }
 
-        clientItemService.save(clientItem);
         List<ClientItem> basket = clientService.findBasketItemsByClientId(id);
         basket.add(clientItem);
         client.setBasket(new HashSet<>(basket));

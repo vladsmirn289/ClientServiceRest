@@ -41,18 +41,6 @@ public class OrderCacheTest {
     private CacheManager cacheManager;
 
     @Test
-    public void findOrdersByClientIdCachingTest() {
-        clientService.findOrdersByClientId(12L);
-
-        Cache cache = cacheManager.getCache("orders");
-        assertThat(cache).isNotNull();
-
-        List<Order> orders = cache.get(12L, ArrayList.class);
-        assertThat(orders).isNotNull();
-        assertThat(orders.size()).isEqualTo(2);
-    }
-
-    @Test
     public void findOrdersForManagersCachingTest() {
         Pageable pageable = PageRequest.of(0, 2, Sort.by("id"));
         orderService.findOrdersForManagers(pageable);
@@ -101,6 +89,6 @@ public class OrderCacheTest {
         assertThat(cache).isNotNull();
 
         Order order = cache.get(20L, Order.class);
-        assertThat(order).isNull();;
+        assertThat(order).isNull();
     }
 }
