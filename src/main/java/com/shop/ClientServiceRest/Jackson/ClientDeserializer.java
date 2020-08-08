@@ -31,13 +31,17 @@ public class ClientDeserializer extends StdDeserializer<Client> {
         String login = node.get("login").asText();
         String password = node.get("password").asText();
         String email = node.get("email").asText();
-        Iterator<JsonNode> rolesNode = node.get("roles").elements();
-        boolean accountNonLocked = node.get("accountNonLocked").asBoolean();
 
         Set<Role> roles = new HashSet<>();
-        while (rolesNode.hasNext()) {
-            roles.add(Role.valueOf(rolesNode.next().asText()));
+        if (node.hasNonNull("roles")) {
+            Iterator<JsonNode> rolesNode = node.get("roles").elements();
+
+            while (rolesNode.hasNext()) {
+                roles.add(Role.valueOf(rolesNode.next().asText()));
+            }
         }
+
+        boolean accountNonLocked = node.get("accountNonLocked").asBoolean();
 
         Client client = new Client(email, password, firstName, lastName, login);
         if (node.hasNonNull("id")) {

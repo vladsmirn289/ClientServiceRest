@@ -37,13 +37,17 @@ public class ClientSerializer extends StdSerializer<Client> {
             jsonGenerator.writeStringField("patronymic", client.getPatronymic());
         }
 
-        jsonGenerator.writeArrayFieldStart("roles");
+        if (client.getRoles() == null) {
+            jsonGenerator.writeNullField("roles");
+        } else {
+            jsonGenerator.writeArrayFieldStart("roles");
 
-        for (Role r : client.getRoles()) {
-            jsonGenerator.writeString(r.name());
+            for (Role r : client.getRoles()) {
+                jsonGenerator.writeString(r.name());
+            }
+
+            jsonGenerator.writeEndArray();
         }
-
-        jsonGenerator.writeEndArray();
 
         if (client.getConfirmationCode() == null) {
             jsonGenerator.writeNullField("confirmationCode");

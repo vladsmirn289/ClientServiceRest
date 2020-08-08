@@ -4,6 +4,7 @@ import com.shop.ClientServiceRest.Model.Client;
 import com.shop.ClientServiceRest.Model.Order;
 import com.shop.ClientServiceRest.Service.ClientService;
 import com.shop.ClientServiceRest.Service.OrderService;
+import io.swagger.annotations.ApiOperation;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.BeanUtils;
@@ -17,6 +18,7 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
+import springfox.documentation.annotations.ApiIgnore;
 
 import javax.validation.Valid;
 import java.util.List;
@@ -49,9 +51,10 @@ public class ClientController {
         this.orderService = orderService;
     }
 
+    @ApiOperation(value = "Show list of clients")
     @GetMapping(params = {"page", "size"})
     @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<List<Client>> listOfClients(@AuthenticationPrincipal Client authClient,
+    public ResponseEntity<List<Client>> listOfClients(@ApiIgnore @AuthenticationPrincipal Client authClient,
                                                       @RequestParam("page") int page,
                                                       @RequestParam("size") int size) {
         logger.info("Called listOfClients method");
@@ -61,9 +64,10 @@ public class ClientController {
         return new ResponseEntity<>(allClients, HttpStatus.OK);
     }
 
+    @ApiOperation(value = "Show client by id")
     @GetMapping("/{id}")
     @PreAuthorize(ACCESS_BY_ID_OR_NOT_USER_ROLE)
-    public ResponseEntity<Client> clientById(@AuthenticationPrincipal Client authClient,
+    public ResponseEntity<Client> clientById(@ApiIgnore @AuthenticationPrincipal Client authClient,
                                              @PathVariable("id") Long id) {
         logger.info("Called clientById method");
 
@@ -77,9 +81,10 @@ public class ClientController {
         }
     }
 
+    @ApiOperation(value = "Show client by login")
     @GetMapping("/byLogin/{login}")
     @PreAuthorize(ACCESS_BY_USERNAME_OR_NOT_USER_ROLE)
-    public ResponseEntity<Client> clientByLogin(@AuthenticationPrincipal Client authClient,
+    public ResponseEntity<Client> clientByLogin(@ApiIgnore @AuthenticationPrincipal Client authClient,
                                                 @PathVariable("login") String login) {
         logger.info("Called clientByLogin method");
 
@@ -92,9 +97,10 @@ public class ClientController {
         return new ResponseEntity<>(client, HttpStatus.OK);
     }
 
+    @ApiOperation(value = "Show client by confirmation code")
     @GetMapping("/byConfirmCode/{code}")
     @PreAuthorize(ACCESS_BY_CONFIRM_CODE_OR_NOT_USER_ROLE)
-    public ResponseEntity<Client> clientByConfirmCode(@AuthenticationPrincipal Client authClient,
+    public ResponseEntity<Client> clientByConfirmCode(@ApiIgnore @AuthenticationPrincipal Client authClient,
                                                       @PathVariable("code") String code) {
         logger.info("Called clientByConfirmCode method");
 
@@ -107,9 +113,10 @@ public class ClientController {
         return new ResponseEntity<>(client, HttpStatus.OK);
     }
 
+    @ApiOperation(value = "Update exists client")
     @PutMapping("/{id}")
     @PreAuthorize(ACCESS_BY_ID_OR_NOT_USER_ROLE)
-    public ResponseEntity<Client> updateClient(@AuthenticationPrincipal Client authClient,
+    public ResponseEntity<Client> updateClient(@ApiIgnore @AuthenticationPrincipal Client authClient,
                                                @PathVariable("id") Long id,
                                                @RequestBody @Valid Client client,
                                                BindingResult bindingResult) {
@@ -133,6 +140,7 @@ public class ClientController {
         }
     }
 
+    @ApiOperation(value = "Create new client")
     @PostMapping
     public ResponseEntity<Client> createNewClient(@RequestBody @Valid Client client,
                                                   BindingResult bindingResult) {
@@ -147,9 +155,10 @@ public class ClientController {
         return new ResponseEntity<>(client, HttpStatus.CREATED);
     }
 
+    @ApiOperation(value = "Delete client")
     @DeleteMapping("/{id}")
     @PreAuthorize(ACCESS_BY_ID_OR_NOT_USER_ROLE)
-    public void deleteClient(@AuthenticationPrincipal Client authClient,
+    public void deleteClient(@ApiIgnore @AuthenticationPrincipal Client authClient,
                              @PathVariable("id") Long id) {
         logger.info("Called deleteClient method");
 
@@ -162,9 +171,10 @@ public class ClientController {
         }
     }
 
+    @ApiOperation(value = "Show list of not completed orders", notes = "Only for managers or admins")
     @GetMapping(value = "/managerOrders", params = {"page", "size"})
     @PreAuthorize("hasAnyRole('MANAGER', 'ADMIN')")
-    public ResponseEntity<List<Order>> getOrdersForManagers(@AuthenticationPrincipal Client authClient,
+    public ResponseEntity<List<Order>> getOrdersForManagers(@ApiIgnore @AuthenticationPrincipal Client authClient,
                                                             @RequestParam("page") int page,
                                                             @RequestParam("size") int size) {
         logger.info("Called getOrdersForManagers method");
@@ -175,9 +185,10 @@ public class ClientController {
         return new ResponseEntity<>(orders, HttpStatus.OK);
     }
 
+    @ApiOperation(value = "Show order by id", notes = "Only for managers or admins")
     @GetMapping("/orders/{order_id}")
     @PreAuthorize("hasAnyRole('MANAGER', 'ADMIN')")
-    public ResponseEntity<Order> getOrderById(@AuthenticationPrincipal Client authClient,
+    public ResponseEntity<Order> getOrderById(@ApiIgnore @AuthenticationPrincipal Client authClient,
                                               @PathVariable("order_id") Long orderId) {
         logger.info("Called getOrderById method");
 

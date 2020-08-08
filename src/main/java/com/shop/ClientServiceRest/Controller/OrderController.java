@@ -4,6 +4,7 @@ import com.shop.ClientServiceRest.Model.Client;
 import com.shop.ClientServiceRest.Model.Order;
 import com.shop.ClientServiceRest.Service.ClientService;
 import com.shop.ClientServiceRest.Service.OrderService;
+import io.swagger.annotations.ApiOperation;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.BeanUtils;
@@ -17,8 +18,10 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
+import springfox.documentation.annotations.ApiIgnore;
 
 import javax.validation.Valid;
+import java.util.HashSet;
 import java.util.List;
 import java.util.NoSuchElementException;
 
@@ -45,29 +48,34 @@ public class OrderController {
         this.orderService = orderService;
     }
 
+    @ApiOperation(value = "Show orders by client")
     @GetMapping(params = {"page", "size"})
     @PreAuthorize(ACCESS_BY_ID_OR_NOT_USER_ROLE)
-    public ResponseEntity<List<Order>> getOrdersByClientId(@AuthenticationPrincipal Client authClient,
+    public ResponseEntity<List<Order>> getOrdersByClientId(@ApiIgnore @AuthenticationPrincipal Client authClient,
                                                            @PathVariable("id") Long id,
                                                            @RequestParam("page") int page,
                                                            @RequestParam("size") int size) {
         logger.info("Called getOrdersByClientId method");
         Pageable pageable = PageRequest.of(page, size, Sort.by("id"));
-        List<Order> orders = orderService.findOrdersByClient(authClient, pageable).getContent();
+        Client client = clientService.findById(id);
+        List<Order> orders = orderService.findOrdersByClient(client, pageable).getContent();
 
         return new ResponseEntity<>(orders, HttpStatus.OK);
     }
 
+    @ApiOperation(value = "Show client order by order id")
     @GetMapping("/{order_id}")
     @PreAuthorize(ACCESS_BY_ID_OR_NOT_USER_ROLE)
-    public ResponseEntity<Order> getOrderById(@AuthenticationPrincipal Client authClient,
+    public ResponseEntity<Order> getOrderById(@ApiIgnore @AuthenticationPrincipal Client authClient,
                                               @PathVariable("id") Long id,
                                               @PathVariable("order_id") Long orderId) {
         logger.info("Called getOrderById");
-        Order order = orderService.findById(orderId);
 
-        if (order == null) {
+        try {
+            orderService.findById(orderId);
+        } catch (NoSuchElementException ex) {
             logger.warn("Order with id - " + orderId + " not found");
+            logger.error(ex.toString());
             return new ResponseEntity<>(null, HttpStatus.NOT_FOUND);
         }
 
@@ -78,13 +86,14 @@ public class OrderController {
             }
         }
 
-        logger.warn("Client with id -" + id + " not contain order with id - " + orderId);
+        logger.warn("Client with id - " + id + " not contain order with id - " + orderId);
         return new ResponseEntity<>(null, HttpStatus.NOT_FOUND);
     }
 
+    @ApiOperation(value = "Update exists order")
     @PutMapping("/{order_id}")
     @PreAuthorize(ACCESS_BY_ID_OR_NOT_USER_ROLE)
-    public ResponseEntity<Order> updateOrder(@AuthenticationPrincipal Client authClient,
+    public ResponseEntity<Order> updateOrder(@ApiIgnore @AuthenticationPrincipal Client authClient,
                                              @PathVariable("id") Long id,
                                              @PathVariable("order_id") Long orderId,
                                              @RequestBody @Valid Order order,
@@ -109,9 +118,10 @@ public class OrderController {
         }
     }
 
+    @ApiOperation(value = "Create new order")
     @PostMapping
     @PreAuthorize(ACCESS_BY_ID_OR_NOT_USER_ROLE)
-    public ResponseEntity<Order> createNewOrder(@AuthenticationPrincipal Client authClient,
+    public ResponseEntity<Order> createNewOrder(@ApiIgnore @AuthenticationPrincipal Client authClient,
                                                 @PathVariable("id") Long id,
                                                 @RequestBody @Valid Order order,
                                                 BindingResult bindingResult) {
@@ -122,19 +132,27 @@ public class OrderController {
             return new ResponseEntity<>(order, HttpStatus.BAD_REQUEST);
         }
 
+        Client client = clientService.findById(id);
+        order.setClient(client);
         orderService.save(order);
+        List<Order> orders = clientService.findOrdersByClientId(id);
+        orders.add(order);
+        client.setOrders(new HashSet<>(orders));
+        clientService.save(client);
 
         return new ResponseEntity<>(order, HttpStatus.CREATED);
     }
 
+    @ApiOperation(value = "Delete client order by id")
     @DeleteMapping("/{order_id}")
     @PreAuthorize(ACCESS_BY_ID_OR_NOT_USER_ROLE)
-    public void deleteOrderById(@AuthenticationPrincipal Client authClient,
+    public void deleteOrderById(@ApiIgnore @AuthenticationPrincipal Client authClient,
                                 @PathVariable("id") Long id,
                                 @PathVariable("order_id") Long orderId) {
         logger.info("Called deleteOrderById method");
 
-        Order order = getOrderById(authClient, authClient.getId(), orderId).getBody();
+        Client client = clientService.findById(id);
+        Order order = getOrderById(client, id, orderId).getBody();
         if (order == null) {
             return;
         }
@@ -142,9 +160,10 @@ public class OrderController {
         orderService.delete(order);
     }
 
+    @ApiOperation(value = "Clear client orders list")
     @DeleteMapping
     @PreAuthorize(ACCESS_BY_ID_OR_NOT_USER_ROLE)
-    public void clearOrdersByClientId(@AuthenticationPrincipal Client authClient,
+    public void clearOrdersByClientId(@ApiIgnore @AuthenticationPrincipal Client authClient,
                                       @PathVariable("id") Long id) {
         logger.info("Called clearOrdersByClientId method");
 

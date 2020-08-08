@@ -75,7 +75,6 @@ public class ClientServiceImpl implements ClientService {
     }
 
     @Override
-    @Cacheable(value = "basket")
     public List<ClientItem> findBasketItemsByClientId(Long id) {
         logger.info("Find basket items by client id - " + id);
         Client client = clientRepo.findById(id).orElseThrow(NoSuchElementException::new);
@@ -85,7 +84,6 @@ public class ClientServiceImpl implements ClientService {
     }
 
     @Override
-    @Cacheable(value = "orders")
     public List<Order> findOrdersByClientId(Long id) {
         logger.info("Find orders by client id - " + id);
         Client client = clientRepo.findById(id).orElseThrow(NoSuchElementException::new);
@@ -106,6 +104,8 @@ public class ClientServiceImpl implements ClientService {
         }
 
         clientRepo.save(client);
+        Cache cache = cacheManager.getCache("clients");
+        cache.put("clients", client);
     }
 
     @Override
@@ -123,15 +123,12 @@ public class ClientServiceImpl implements ClientService {
     public void deleteBasketItems(Set<ClientItem> itemSet, Long id) {
         logger.info("Called deleteBasketItems method");
         Client client = clientRepo.findById(id).orElseThrow(NoSuchElementException::new);
-        Cache cache = cacheManager.getCache("basket");
 
         Set<ClientItem> basketItems = client.getBasket()
                 .stream().map(clientItem -> {
             if (!itemSet.contains(clientItem)) {
                 return clientItem;
             } else {
-                if (cache != null)
-                    cache.evictIfPresent(clientItem);
                 return null;
             }
         }).filter(Objects::nonNull)

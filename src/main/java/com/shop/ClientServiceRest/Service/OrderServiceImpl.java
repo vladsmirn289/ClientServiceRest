@@ -13,6 +13,8 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.NoSuchElementException;
+
 @Service
 @Transactional
 public class OrderServiceImpl implements OrderService {
@@ -46,7 +48,7 @@ public class OrderServiceImpl implements OrderService {
     @Cacheable(value = "orders")
     public Order findById(Long id) {
         logger.info("findById method called for order with id = " + id);
-        return orderRepo.findById(id).orElse(null);
+        return orderRepo.findById(id).orElseThrow(NoSuchElementException::new);
     }
 
     @Override
