@@ -80,27 +80,6 @@ public class CacheTest {
     }
 
     @Test
-    @SuppressWarnings("unchecked")
-    public void findAllCachingTest() {
-        Pageable pageable1 = PageRequest.of(0, 1);
-        Pageable pageable2 = PageRequest.of(1, 1);
-        clientService.findAll(pageable1);
-        clientService.findAll(pageable2);
-
-        Cache cache = cacheManager.getCache("pagination");
-        assertThat(cache).isNotNull();
-
-        Page<Client> clientPage1 = cache.get(pageable1, Page.class);
-        Page<Client> clientPage2 = cache.get(pageable2, Page.class);
-        assertThat(clientPage1).isNotNull();
-        assertThat(clientPage2).isNotNull();
-        List<Client> clients1 = clientPage1.getContent();
-        List<Client> clients2 = clientPage2.getContent();
-        assertThat(clients1.get(0).getFirstName()).isEqualTo("1_first_name");
-        assertThat(clients2.get(0).getFirstName()).isEqualTo("2_first_name");
-    }
-
-    @Test
     public void findByLoginCachingTest() {
         clientService.findByLogin("1_login");
         clientService.findByLogin("2_login");

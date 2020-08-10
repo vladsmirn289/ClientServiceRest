@@ -53,7 +53,6 @@ public class ClientServiceImpl implements ClientService {
 
     @Override
     @Transactional(readOnly = true)
-    @Cacheable(value = "pagination")
     public Page<Client> findAll(Pageable pageable) {
         logger.info("Find all clients with pagination");
         return clientRepo.findAll(pageable);

@@ -30,7 +30,6 @@ public class OrderServiceImpl implements OrderService {
 
     @Override
     @Transactional(readOnly = true)
-    @Cacheable(value = "pagination")
     public Page<Order> findOrdersForManagers(Pageable pageable) {
         logger.info("findOrdersForManagers method called");
         return orderRepo.findOrdersForManagers(pageable);
@@ -38,7 +37,6 @@ public class OrderServiceImpl implements OrderService {
 
     @Override
     @Transactional(readOnly = true)
-    @Cacheable(value = "pagination", key = "#pageable")
     public Page<Order> findOrdersByClient(Client client, Pageable pageable) {
         return orderRepo.findOrdersByClient(client, pageable);
     }
