@@ -9,6 +9,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
@@ -54,12 +55,12 @@ public class ClientController {
     @ApiOperation(value = "Show list of clients")
     @GetMapping(params = {"page", "size"})
     @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<List<Client>> listOfClients(@ApiIgnore @AuthenticationPrincipal Client authClient,
+    public ResponseEntity<Page<Client>> listOfClients(@ApiIgnore @AuthenticationPrincipal Client authClient,
                                                       @RequestParam("page") int page,
                                                       @RequestParam("size") int size) {
         logger.info("Called listOfClients method");
         Pageable pageable = PageRequest.of(page, size, Sort.by("id"));
-        List<Client> allClients = clientService.findAll(pageable).getContent();
+        Page<Client> allClients = clientService.findAll(pageable);
 
         return new ResponseEntity<>(allClients, HttpStatus.OK);
     }
@@ -174,13 +175,13 @@ public class ClientController {
     @ApiOperation(value = "Show list of not completed orders", notes = "Only for managers or admins")
     @GetMapping(value = "/managerOrders", params = {"page", "size"})
     @PreAuthorize("hasAnyRole('MANAGER', 'ADMIN')")
-    public ResponseEntity<List<Order>> getOrdersForManagers(@ApiIgnore @AuthenticationPrincipal Client authClient,
+    public ResponseEntity<Page<Order>> getOrdersForManagers(@ApiIgnore @AuthenticationPrincipal Client authClient,
                                                             @RequestParam("page") int page,
                                                             @RequestParam("size") int size) {
         logger.info("Called getOrdersForManagers method");
 
         Pageable pageable = PageRequest.of(page, size, Sort.by("id"));
-        List<Order> orders = orderService.findOrdersForManagers(pageable).getContent();
+        Page<Order> orders = orderService.findOrdersForManagers(pageable);
 
         return new ResponseEntity<>(orders, HttpStatus.OK);
     }

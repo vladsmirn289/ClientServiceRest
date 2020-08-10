@@ -9,6 +9,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
@@ -51,14 +52,14 @@ public class OrderController {
     @ApiOperation(value = "Show orders by client")
     @GetMapping(params = {"page", "size"})
     @PreAuthorize(ACCESS_BY_ID_OR_NOT_USER_ROLE)
-    public ResponseEntity<List<Order>> getOrdersByClientId(@ApiIgnore @AuthenticationPrincipal Client authClient,
+    public ResponseEntity<Page<Order>> getOrdersByClientId(@ApiIgnore @AuthenticationPrincipal Client authClient,
                                                            @PathVariable("id") Long id,
                                                            @RequestParam("page") int page,
                                                            @RequestParam("size") int size) {
         logger.info("Called getOrdersByClientId method");
         Pageable pageable = PageRequest.of(page, size, Sort.by("id"));
         Client client = clientService.findById(id);
-        List<Order> orders = orderService.findOrdersByClient(client, pageable).getContent();
+        Page<Order> orders = orderService.findOrdersByClient(client, pageable);
 
         return new ResponseEntity<>(orders, HttpStatus.OK);
     }
