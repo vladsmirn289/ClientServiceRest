@@ -72,12 +72,17 @@ public class OrderController {
                                               @PathVariable("order_id") Long orderId) {
         logger.info("Called getOrderById");
 
+        Order order;
         try {
-            orderService.findById(orderId);
+            order = orderService.findById(orderId);
         } catch (NoSuchElementException ex) {
             logger.warn("Order with id - " + orderId + " not found");
             logger.error(ex.toString());
             return new ResponseEntity<>(null, HttpStatus.NOT_FOUND);
+        }
+
+        if (authClient.isManager() || authClient.isAdmin()) {
+            return new ResponseEntity<>(order, HttpStatus.OK);
         }
 
         List<Order> orders = clientService.findOrdersByClientId(id);

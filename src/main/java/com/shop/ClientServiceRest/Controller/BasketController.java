@@ -123,12 +123,17 @@ public class BasketController {
                                                           @PathVariable("item_id") Long itemId) {
         logger.info("Called getItemOfBasketById method");
 
+        ClientItem clientItem;
         try {
-            clientItemService.findById(itemId);
+            clientItem = clientItemService.findById(itemId);
         } catch (NoSuchElementException ex) {
             logger.warn("ClientItem with id - " + itemId + " not found");
             logger.error(ex.toString());
             return new ResponseEntity<>(null, HttpStatus.NOT_FOUND);
+        }
+
+        if (authClient.isManager() || authClient.isAdmin()) {
+            return new ResponseEntity<>(clientItem, HttpStatus.OK);
         }
 
         List<ClientItem> basket = clientService.findBasketItemsByClientId(id);
