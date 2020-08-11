@@ -131,6 +131,7 @@ public class ClientController {
             Client persistentClient = clientService.findById(id);
 
             BeanUtils.copyProperties(client, persistentClient, "id");
+            persistentClient.setNonLocked(client.isAccountNonLocked());
             clientService.save(persistentClient);
             return new ResponseEntity<>(persistentClient, HttpStatus.OK);
         } catch (NoSuchElementException ex) {
