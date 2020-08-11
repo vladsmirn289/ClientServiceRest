@@ -1,6 +1,7 @@
 package com.shop.ClientServiceRest.Controller;
 
 import com.shop.ClientServiceRest.Model.Client;
+import com.shop.ClientServiceRest.Model.ClientItem;
 import com.shop.ClientServiceRest.Model.Order;
 import com.shop.ClientServiceRest.Service.ClientService;
 import com.shop.ClientServiceRest.Service.OrderService;
@@ -142,8 +143,10 @@ public class OrderController {
         order.setClient(client);
         orderService.save(order);
         List<Order> orders = clientService.findOrdersByClientId(id);
+        List<ClientItem> basket = clientService.findBasketItemsByClientId(id);
         orders.add(order);
         client.setOrders(new HashSet<>(orders));
+        client.setBasket(new HashSet<>(basket));
         clientService.save(client);
 
         return new ResponseEntity<>(order, HttpStatus.CREATED);

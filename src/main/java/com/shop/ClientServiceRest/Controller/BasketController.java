@@ -2,6 +2,7 @@ package com.shop.ClientServiceRest.Controller;
 
 import com.shop.ClientServiceRest.Model.Client;
 import com.shop.ClientServiceRest.Model.ClientItem;
+import com.shop.ClientServiceRest.Model.Order;
 import com.shop.ClientServiceRest.Service.ClientItemService;
 import com.shop.ClientServiceRest.Service.ClientService;
 import io.swagger.annotations.ApiOperation;
@@ -197,8 +198,10 @@ public class BasketController {
         }
 
         List<ClientItem> basket = clientService.findBasketItemsByClientId(id);
+        List<Order> orders = clientService.findOrdersByClientId(id);
         basket.add(clientItem);
         client.setBasket(new HashSet<>(basket));
+        client.setOrders(new HashSet<>(orders));
         clientService.save(client);
 
         return new ResponseEntity<>(clientItem, HttpStatus.OK);

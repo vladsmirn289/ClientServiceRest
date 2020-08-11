@@ -1,6 +1,7 @@
 package com.shop.ClientServiceRest.Controller;
 
 import com.shop.ClientServiceRest.Model.Client;
+import com.shop.ClientServiceRest.Model.ClientItem;
 import com.shop.ClientServiceRest.Model.Order;
 import com.shop.ClientServiceRest.Service.ClientService;
 import com.shop.ClientServiceRest.Service.OrderService;
@@ -22,6 +23,8 @@ import org.springframework.web.bind.annotation.*;
 import springfox.documentation.annotations.ApiIgnore;
 
 import javax.validation.Valid;
+import java.util.HashSet;
+import java.util.List;
 import java.util.NoSuchElementException;
 
 @RestController
@@ -132,6 +135,10 @@ public class ClientController {
 
             BeanUtils.copyProperties(client, persistentClient, "id");
             persistentClient.setNonLocked(client.isAccountNonLocked());
+            List<Order> orders = clientService.findOrdersByClientId(id);
+            List<ClientItem> basket = clientService.findBasketItemsByClientId(id);
+            persistentClient.setBasket(new HashSet<>(basket));
+            persistentClient.setOrders(new HashSet<>(orders));
             clientService.save(persistentClient);
             return new ResponseEntity<>(persistentClient, HttpStatus.OK);
         } catch (NoSuchElementException ex) {
