@@ -9,6 +9,7 @@ public interface OrderService {
     Page<Order> findOrdersForManagers(Pageable pageable);
     Page<Order> findOrdersByClient(Client client, Pageable pageable);
     Order findById(Long id);
+    Client findClientByOrderId(Long id);
 
     void save(Order order);
 

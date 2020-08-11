@@ -202,4 +202,15 @@ public class ClientController {
 
         return new ResponseEntity<>(order, HttpStatus.OK);
     }
+
+    @ApiOperation(value = "Show client of order by id", notes = "Only for managers or admins")
+    @GetMapping("/orders/{order_id}/client")
+    @PreAuthorize("hasAnyRole('MANAGER', 'ADMIN')")
+    public ResponseEntity<Client> getClientOfOrderById(@ApiIgnore @AuthenticationPrincipal Client authClient,
+                                                      @PathVariable("order_id") Long orderId) {
+        logger.info("Called getClientOfOrderById method");
+        Client client = orderService.findClientByOrderId(orderId);
+
+        return new ResponseEntity<>(client, HttpStatus.OK);
+    }
 }

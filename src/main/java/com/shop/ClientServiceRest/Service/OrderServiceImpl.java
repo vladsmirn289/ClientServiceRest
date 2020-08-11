@@ -3,6 +3,7 @@ package com.shop.ClientServiceRest.Service;
 import com.shop.ClientServiceRest.Model.Client;
 import com.shop.ClientServiceRest.Model.Order;
 import com.shop.ClientServiceRest.Repository.OrderRepo;
+import org.hibernate.Hibernate;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -44,6 +45,14 @@ public class OrderServiceImpl implements OrderService {
     public Order findById(Long id) {
         logger.info("findById method called for order with id = " + id);
         return orderRepo.findById(id).orElseThrow(NoSuchElementException::new);
+    }
+
+    @Override
+    public Client findClientByOrderId(Long id) {
+        Order order = findById(id);
+        Hibernate.initialize(order.getClient());
+
+        return order.getClient();
     }
 
     @Override
