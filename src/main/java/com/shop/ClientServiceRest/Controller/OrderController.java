@@ -116,6 +116,8 @@ public class OrderController {
             Order persistentOrder = orderService.findById(orderId);
 
             BeanUtils.copyProperties(order, persistentOrder, "id");
+            Client client = orderService.findClientByOrderId(orderId);
+            persistentOrder.setClient(client);
             orderService.save(persistentOrder);
             return new ResponseEntity<>(persistentOrder, HttpStatus.OK);
         } catch (NoSuchElementException | NullPointerException ex) {
