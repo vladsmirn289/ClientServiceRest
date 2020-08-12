@@ -3,6 +3,7 @@ package com.shop.ClientServiceRest.Controller;
 import com.shop.ClientServiceRest.Model.Client;
 import com.shop.ClientServiceRest.Model.ClientItem;
 import com.shop.ClientServiceRest.Model.Order;
+import com.shop.ClientServiceRest.Service.ClientItemService;
 import com.shop.ClientServiceRest.Service.ClientService;
 import com.shop.ClientServiceRest.Service.OrderService;
 import io.swagger.annotations.ApiOperation;
@@ -34,6 +35,7 @@ public class OrderController {
 
     private ClientService clientService;
     private OrderService orderService;
+    private ClientItemService clientItemService;
 
     private static final String ACCESS_BY_ID_OR_NOT_USER_ROLE = "#authClient.id == #id" +
             " || hasAnyRole('ADMIN', 'MANAGER')";
@@ -48,6 +50,11 @@ public class OrderController {
     public void setOrderService(OrderService orderService) {
         logger.debug("Setting orderService");
         this.orderService = orderService;
+    }
+
+    @Autowired
+    public void setClientItemService(ClientItemService clientItemService) {
+        this.clientItemService = clientItemService;
     }
 
     @ApiOperation(value = "Show orders by client")
@@ -144,6 +151,12 @@ public class OrderController {
         Client client = clientService.findById(id);
         order.setClient(client);
         orderService.save(order);
+
+        order.getClientItems().forEach(i -> {
+            i.setOrder(order);
+            clientItemService.save(i);
+        });
+
         List<Order> orders = clientService.findOrdersByClientId(id);
         List<ClientItem> basket = clientService.findBasketItemsByClientId(id);
         orders.add(order);
