@@ -115,7 +115,7 @@ public class OrderController {
         try {
             Order persistentOrder = orderService.findById(orderId);
 
-            BeanUtils.copyProperties(order, persistentOrder, "id");
+            BeanUtils.copyProperties(order, persistentOrder, "id", "client");
             Client client = orderService.findClientByOrderId(orderId);
             persistentOrder.setClient(client);
             orderService.save(persistentOrder);

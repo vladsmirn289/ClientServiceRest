@@ -51,7 +51,7 @@ public class OrderServiceImpl implements OrderService {
     public Client findClientByOrderId(Long id) {
         Order order = findById(id);
         Client client = order.getClient();
-        Hibernate.initialize(client);
+        client.getId();
 
         return client;
     }
