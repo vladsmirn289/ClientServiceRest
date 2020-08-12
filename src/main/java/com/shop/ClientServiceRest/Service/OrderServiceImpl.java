@@ -17,7 +17,7 @@ import java.util.NoSuchElementException;
 @Service
 @Transactional
 public class OrderServiceImpl implements OrderService {
-    private static final Logger logger = LoggerFactory.getLogger(ClientServiceImpl.class);
+    private static final Logger logger = LoggerFactory.getLogger(OrderServiceImpl.class);
 
     private OrderRepo orderRepo;
 
@@ -50,9 +50,10 @@ public class OrderServiceImpl implements OrderService {
     @Override
     public Client findClientByOrderId(Long id) {
         Order order = findById(id);
-        Hibernate.initialize(order.getClient());
+        Client client = order.getClient();
+        Hibernate.initialize(client);
 
-        return order.getClient();
+        return client;
     }
 
     @Override
