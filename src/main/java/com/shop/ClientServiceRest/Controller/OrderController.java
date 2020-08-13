@@ -106,7 +106,7 @@ public class OrderController {
 
     @ApiOperation(value = "Update exists order")
     @PutMapping("/{order_id}")
-    @PreAuthorize(ACCESS_BY_ID_OR_NOT_USER_ROLE)
+    @PreAuthorize("isAuthenticated()")
     public ResponseEntity<Order> updateOrder(@ApiIgnore @AuthenticationPrincipal Client authClient,
                                              @PathVariable("id") Long id,
                                              @PathVariable("order_id") Long orderId,
