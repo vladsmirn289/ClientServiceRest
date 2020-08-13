@@ -6,7 +6,7 @@ services:
     ports:
       - 5433:5432
     expose:
-      - 5433:5432
+      - "5433"
     environment:
       POSTGRES_PASSWORD: postgres
       POSTGRES_DB: shop_db
@@ -17,7 +17,7 @@ services:
     ports:
       - 9001:8081
     expose:
-      - 9001:8081
+      - "9001"
     environment:
       db_host: db
     restart: always
@@ -29,7 +29,7 @@ services:
     ports:
       - 9002:8082
     expose:
-      - 9002:8082
+      - "9002"
     environment:
       POSTGRES_HOST: db
     restart: always
