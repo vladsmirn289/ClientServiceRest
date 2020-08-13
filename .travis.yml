@@ -17,6 +17,7 @@ before_install:
 
 before_script:
   - docker-compose --file ./src/test/java/com/shop/ClientServiceRest/docker-compose-test.yml up -d
+  - sleep 60
 
 after_script:
   - docker-compose --file ./src/test/java/com/shop/ClientServiceRest/docker-compose-test.yml down
