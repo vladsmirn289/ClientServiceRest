@@ -8,7 +8,6 @@ import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
-import org.springframework.cache.CacheManager;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
@@ -24,9 +23,6 @@ public class OrderServiceTest {
     @Autowired
     private OrderService orderService;
 
-    @Autowired
-    private CacheManager cacheManager;
-
     @MockBean
     private OrderRepo orderRepo;
 
@@ -34,11 +30,6 @@ public class OrderServiceTest {
 
     @BeforeEach
     public void init() {
-        cacheManager.getCache("clients").clear();
-        cacheManager.getCache("basket").clear();
-        cacheManager.getCache("orders").clear();
-        cacheManager.getCache("pagination").clear();
-
         Category books = new Category("Books");
         Category book = new Category("Book", books);
         Item item = new Item("item", 30L, 3D
@@ -109,6 +100,28 @@ public class OrderServiceTest {
 
         Mockito.verify(orderRepo, Mockito.times(1))
                 .findById(1L);
+    }
+
+    @Test
+    public void shouldFindClientByOrderId() {
+        Client client = new Client("email@gmail.com",
+                "passwd",
+                "firstName",
+                "lastName",
+                "login");
+        this.order.setClient(client);
+
+        Mockito
+                .doReturn(Optional.of(order))
+                .when(orderRepo)
+                .findById(100L);
+
+        Client c = orderService.findClientByOrderId(100L);
+        assertThat(c.getLogin()).isEqualTo("login");
+        assertThat(c.getPassword()).isEqualTo("passwd");
+
+        Mockito.verify(orderRepo, Mockito.times(1))
+                .findById(100L);
     }
 
     @Test

@@ -10,7 +10,6 @@ import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
-import org.springframework.cache.CacheManager;
 
 import java.util.Collections;
 import java.util.NoSuchElementException;
@@ -24,9 +23,6 @@ public class ClientItemServiceTest {
     @Autowired
     private ClientItemService clientItemService;
 
-    @Autowired
-    private CacheManager cacheManager;
-
     @MockBean
     private ClientItemRepo clientItemRepo;
 
@@ -34,11 +30,6 @@ public class ClientItemServiceTest {
 
     @BeforeEach
     public void init() {
-        cacheManager.getCache("clients").clear();
-        cacheManager.getCache("basket").clear();
-        cacheManager.getCache("orders").clear();
-        cacheManager.getCache("pagination").clear();
-
         Category books = new Category("Books");
         Category book = new Category("Book", books);
         Item item = new Item("item", 30L, 3D

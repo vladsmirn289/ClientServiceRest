@@ -2,16 +2,15 @@ package com.shop.ClientServiceRest.Controller;
 
 import com.shop.ClientServiceRest.DTO.AuthRequest;
 import com.shop.ClientServiceRest.DTO.AuthResponse;
+import com.shop.ClientServiceRest.DTO.PageResponse;
 import com.shop.ClientServiceRest.Model.Client;
 import com.shop.ClientServiceRest.Model.Order;
 import com.shop.ClientServiceRest.Service.ClientService;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.web.client.TestRestTemplate;
-import org.springframework.cache.CacheManager;
 import org.springframework.context.annotation.PropertySource;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.*;
@@ -47,17 +46,6 @@ public class ClientRestTest {
     @Autowired
     private ClientService clientService;
 
-    @Autowired
-    private CacheManager cacheManager;
-
-    @BeforeEach
-    public void init() {
-        cacheManager.getCache("clients").clear();
-        cacheManager.getCache("basket").clear();
-        cacheManager.getCache("orders").clear();
-        cacheManager.getCache("pagination").clear();
-    }
-
     private HttpHeaders getHeaderWithJwt(String name, String password) {
         AuthRequest authRequest = new AuthRequest(name, password);
         AuthResponse authResponse = restTemplate.postForEntity(
@@ -75,17 +63,17 @@ public class ClientRestTest {
     void showListOfClients() {
         HttpHeaders headers = getHeaderWithJwt("admin", "01112");
 
-        ResponseEntity<List<Client>> responseClients =
+        ResponseEntity<PageResponse<Client>> responseClients =
                 restTemplate.exchange(
                         "http://localhost:9002/client-rest-swagger/api/clients?page=0&size=2",
                         HttpMethod.GET,
                         new HttpEntity<>(headers),
-                        new ParameterizedTypeReference<List<Client>>(){});
+                        new ParameterizedTypeReference<PageResponse<Client>>(){});
 
         assertThat(responseClients.getStatusCode()).isEqualTo(HttpStatus.OK);
         assertThat(responseClients.getBody()).isNotNull();
 
-        List<Client> clients = responseClients.getBody();
+        List<Client> clients = responseClients.getBody().toPageImpl().getContent();
         assertThat(clients.size()).isEqualTo(2);
 
         Client first = clients.get(0);
@@ -410,17 +398,17 @@ public class ClientRestTest {
     void shouldGetOrdersForManagers() {
         HttpHeaders headers = getHeaderWithJwt("manager", "67891");
 
-        ResponseEntity<List<Order>> responseOrders =
+        ResponseEntity<PageResponse<Order>> responseOrders =
                 restTemplate.exchange(
                         "http://localhost:9002/client-rest-swagger/api/clients/managerOrders?page=0&size=5",
                         HttpMethod.GET,
                         new HttpEntity<>(headers),
-                        new ParameterizedTypeReference<List<Order>>(){});
+                        new ParameterizedTypeReference<PageResponse<Order>>(){});
 
         assertThat(responseOrders.getStatusCode()).isEqualTo(HttpStatus.OK);
         assertThat(responseOrders.getBody()).isNotNull();
 
-        List<Order> orders = responseOrders.getBody();
+        List<Order> orders = responseOrders.getBody().toPageImpl().getContent();
         assertThat(orders.size()).isEqualTo(2);
     }
 
@@ -440,5 +428,25 @@ public class ClientRestTest {
 
         Order order = responseOrders.getBody();
         assertThat(order.getContacts().getCity()).isEqualTo("Южноуральск");
+    }
+
+    @Test
+    void shouldGetClientOfOrderById() {
+        HttpHeaders headers = getHeaderWithJwt("manager", "67891");
+
+        ResponseEntity<Client> responseClient =
+                restTemplate.exchange(
+                        "http://localhost:9002/client-rest-swagger/api/clients/orders/20/client",
+                        HttpMethod.GET,
+                        new HttpEntity<>(headers),
+                        new ParameterizedTypeReference<Client>(){});
+
+        assertThat(responseClient.getStatusCode()).isEqualTo(HttpStatus.OK);
+        assertThat(responseClient.getBody()).isNotNull();
+
+        Client clientByOrder = responseClient.getBody();
+        Client twelfth = clientService.findById(12L);
+
+        assertThat(clientByOrder).isEqualTo(twelfth);
     }
 }

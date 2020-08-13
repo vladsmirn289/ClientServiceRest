@@ -8,13 +8,11 @@ import com.shop.ClientServiceRest.Repository.ItemRepo;
 import com.shop.ClientServiceRest.Service.ClientItemService;
 import com.shop.ClientServiceRest.Service.ClientService;
 import org.assertj.core.data.Percentage;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.web.client.TestRestTemplate;
-import org.springframework.cache.CacheManager;
 import org.springframework.context.annotation.PropertySource;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.*;
@@ -47,17 +45,6 @@ public class BasketControllerTest {
 
     @Autowired
     private ItemRepo itemRepo;
-
-    @Autowired
-    private CacheManager cacheManager;
-
-    @BeforeEach
-    public void init() {
-        cacheManager.getCache("clients").clear();
-        cacheManager.getCache("basket").clear();
-        cacheManager.getCache("orders").clear();
-        cacheManager.getCache("pagination").clear();
-    }
 
     private HttpHeaders getHeaderWithJwt(String name, String password) {
         AuthRequest authRequest = new AuthRequest(name, password);
@@ -258,7 +245,7 @@ public class BasketControllerTest {
     void shouldSuccessAddItemToBasket() {
         HttpHeaders headers = getHeaderWithJwt("simpleUser", "12345");
 
-        ClientItem clientItem = clientItemService.findById(16L);
+        ClientItem clientItem = new ClientItem(itemRepo.findById(6L).get(), 2);
 
         ResponseEntity<ClientItem> responseClientItem =
                 restTemplate.exchange(
@@ -271,7 +258,7 @@ public class BasketControllerTest {
         assertThat(responseClientItem.getBody()).isNotNull();
 
         ClientItem first = responseClientItem.getBody();
-        assertThat(first.getId()).isEqualTo(16);
+        assertThat(first.getId()).isEqualTo(100);
         assertThat(first.getQuantity()).isEqualTo(2);
         assertThat(first.getItem().getId()).isEqualTo(6);
 

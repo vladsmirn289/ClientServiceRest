@@ -3,7 +3,6 @@ package com.shop.ClientServiceRest.Service;
 import com.shop.ClientServiceRest.Model.Client;
 import com.shop.ClientServiceRest.Model.Order;
 import com.shop.ClientServiceRest.Repository.OrderRepo;
-import org.hibernate.Hibernate;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;

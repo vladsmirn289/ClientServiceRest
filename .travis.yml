@@ -1,0 +1,21 @@
+dist: trusty
+language: java
+jdk: oraclejdk8
+
+services:
+  - docker
+
+env:
+  - DOCKER_COMPOSE_VERSION=1.26.2
+
+before_install:
+  - sudo rm /usr/local/bin/docker-compose
+  - curl -L https://github.com/docker/compose/releases/download/${DOCKER_COMPOSE_VERSION}/docker-compose-`uname -s`-`uname -m` > docker-compose
+  - chmod +x docker-compose
+  - sudo mv docker-compose /usr/local/bin
+
+before_script:
+  - docker-compose --file ./src/test/java/com/shop/ClientServiceRest/docker-compose-test.yml up -d
+
+after_script:
+  - docker-compose --file ./src/test/java/com/shop/ClientServiceRest/docker-compose-test.yml down

@@ -2,19 +2,18 @@ package com.shop.ClientServiceRest.Controller;
 
 import com.shop.ClientServiceRest.DTO.AuthRequest;
 import com.shop.ClientServiceRest.DTO.AuthResponse;
+import com.shop.ClientServiceRest.DTO.PageResponse;
 import com.shop.ClientServiceRest.Model.ClientItem;
 import com.shop.ClientServiceRest.Model.Contacts;
 import com.shop.ClientServiceRest.Model.Order;
 import com.shop.ClientServiceRest.Service.ClientItemService;
 import com.shop.ClientServiceRest.Service.ClientService;
 import com.shop.ClientServiceRest.Service.OrderService;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.web.client.TestRestTemplate;
-import org.springframework.cache.CacheManager;
 import org.springframework.context.annotation.PropertySource;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.*;
@@ -50,17 +49,6 @@ public class OrderControllerTest {
     @Autowired
     private OrderService orderService;
 
-    @Autowired
-    private CacheManager cacheManager;
-
-    @BeforeEach
-    public void init() {
-        cacheManager.getCache("clients").clear();
-        cacheManager.getCache("basket").clear();
-        cacheManager.getCache("orders").clear();
-        cacheManager.getCache("pagination").clear();
-    }
-
     private HttpHeaders getHeaderWithJwt(String name, String password) {
         AuthRequest authRequest = new AuthRequest(name, password);
         AuthResponse authResponse = restTemplate.postForEntity(
@@ -78,17 +66,17 @@ public class OrderControllerTest {
     void shouldSuccessGetOrdersByClientId() {
         HttpHeaders headers = getHeaderWithJwt("simpleUser", "12345");
 
-        ResponseEntity<List<Order>> orderResponse =
+        ResponseEntity<PageResponse<Order>> orderResponse =
                 restTemplate.exchange(
                         "http://localhost:9002/client-rest-swagger/api/clients/12/orders?page=0&size=5",
                         HttpMethod.GET,
                         new HttpEntity<>(headers),
-                        new ParameterizedTypeReference<List<Order>>() {});
+                        new ParameterizedTypeReference<PageResponse<Order>>() {});
 
         assertThat(orderResponse.getStatusCode()).isEqualTo(HttpStatus.OK);
         assertThat(orderResponse.getBody()).isNotNull();
 
-        List<Order> orders = orderResponse.getBody();
+        List<Order> orders = orderResponse.getBody().toPageImpl().getContent();
         assertThat(orders.size()).isEqualTo(2);
     }
 
