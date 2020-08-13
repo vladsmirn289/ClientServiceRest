@@ -51,10 +51,17 @@ public class OrderControllerTest {
 
     private HttpHeaders getHeaderWithJwt(String name, String password) {
         AuthRequest authRequest = new AuthRequest(name, password);
-        AuthResponse authResponse = restTemplate.postForEntity(
+        /*AuthResponse authResponse = restTemplate.postForEntity(
                 "http://localhost:9001/auth-server-swagger/api/authentication",
                 authRequest,
-                AuthResponse.class).getBody();
+                AuthResponse.class).getBody();*/
+
+        AuthResponse authResponse = restTemplate.exchange(
+                "http://localhost:9001/auth-server-swagger/api/authentication",
+                HttpMethod.POST,
+                new HttpEntity<>(authRequest),
+                AuthResponse.class
+        ).getBody();
 
         HttpHeaders headers = new HttpHeaders();
         headers.add("Authorization", "Bearer " + authResponse.getJwtToken());
