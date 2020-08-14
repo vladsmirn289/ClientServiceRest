@@ -41,7 +41,7 @@ The diagram of the package structure:
                     *   [Jackson] (Serializers and deserializers for a client and item classes)
                     *   [Model] (JPA entities)
                     *   [Repository] (Spring Data repos)
-                    *   [Service] (Service for finding client by a login)
+                    *   [Service] (Service logic, that delegates work to the repos)
                     *   [ClientServiceRestApp.java] (Main class for, Spring Boot)
             *   [resources]
                 *   [application.properties] (Stores various properties of the database, JWT and swagger)
