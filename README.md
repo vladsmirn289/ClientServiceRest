@@ -35,6 +35,7 @@ The diagram of the package structure:
         *   [main]
             *   [java]
                 *   [com.shop.ClientServiceRest]
+                    *   [Aop] (Intercepts exceptions to get rid of duplication)
                     *   [Config] (Security, jwt and swagger configs)
                         *   [JWT] (Jwt filter and utils for validation)
                     *   [Controller] (Basket, Client, Order and Root controllers)
@@ -69,6 +70,7 @@ Authentication service is the service released under version 2.0 of the [Apache 
 [main]: ./src/main
 [java]: ./src/main/java
 [com.shop.ClientServiceRest]: ./src/main/java/com/shop/ClientServiceRest
+[Aop]: ./src/main/java/com/shop/ClientServiceRest/Aop
 [Config]: ./src/main/java/com/shop/ClientServiceRest/Config
 [JWT]: ./src/main/java/com/shop/ClientServiceRest/Config/JWT
 [Controller]: ./src/main/java/com/shop/ClientServiceRest/Controller

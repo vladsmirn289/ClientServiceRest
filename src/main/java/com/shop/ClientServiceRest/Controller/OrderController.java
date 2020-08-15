@@ -1,5 +1,7 @@
 package com.shop.ClientServiceRest.Controller;
 
+import com.shop.ClientServiceRest.Aop.BadRequestOrderPointcut;
+import com.shop.ClientServiceRest.Aop.NoSuchOrderPointcut;
 import com.shop.ClientServiceRest.Model.Client;
 import com.shop.ClientServiceRest.Model.ClientItem;
 import com.shop.ClientServiceRest.Model.Order;
@@ -26,7 +28,6 @@ import springfox.documentation.annotations.ApiIgnore;
 import javax.validation.Valid;
 import java.util.HashSet;
 import java.util.List;
-import java.util.NoSuchElementException;
 
 @RestController
 @RequestMapping("/api/clients/{id}/orders")
@@ -73,21 +74,14 @@ public class OrderController {
     }
 
     @ApiOperation(value = "Show client order by order id")
+    @NoSuchOrderPointcut
     @GetMapping("/{order_id}")
     @PreAuthorize(ACCESS_BY_ID_OR_NOT_USER_ROLE)
     public ResponseEntity<Order> getOrderById(@ApiIgnore @AuthenticationPrincipal Client authClient,
                                               @PathVariable("id") Long id,
                                               @PathVariable("order_id") Long orderId) {
         logger.info("Called getOrderById");
-
-        Order order;
-        try {
-            order = orderService.findById(orderId);
-        } catch (NoSuchElementException ex) {
-            logger.warn("Order with id - " + orderId + " not found");
-            logger.error(ex.toString());
-            return new ResponseEntity<>(null, HttpStatus.NOT_FOUND);
-        }
+        Order order = orderService.findById(orderId);
 
         if (authClient.isManager() || authClient.isAdmin()) {
             return new ResponseEntity<>(order, HttpStatus.OK);
@@ -105,6 +99,8 @@ public class OrderController {
     }
 
     @ApiOperation(value = "Update exists order")
+    @BadRequestOrderPointcut
+    @NoSuchOrderPointcut
     @PutMapping("/{order_id}")
     @PreAuthorize("isAuthenticated()")
     public ResponseEntity<Order> updateOrder(@ApiIgnore @AuthenticationPrincipal Client authClient,
@@ -113,28 +109,17 @@ public class OrderController {
                                              @RequestBody @Valid Order order,
                                              BindingResult bindingResult) {
         logger.info("Called updateOrder method");
+        Order persistentOrder = orderService.findById(orderId);
 
-        if (bindingResult.hasErrors()) {
-            logger.info("Bad request on update order information");
-            return new ResponseEntity<>(order, HttpStatus.BAD_REQUEST);
-        }
-
-        try {
-            Order persistentOrder = orderService.findById(orderId);
-
-            BeanUtils.copyProperties(order, persistentOrder, "id", "client");
-            Client client = orderService.findClientByOrderId(orderId);
-            persistentOrder.setClient(client);
-            orderService.save(persistentOrder);
-            return new ResponseEntity<>(persistentOrder, HttpStatus.OK);
-        } catch (NoSuchElementException | NullPointerException ex) {
-            logger.warn("Order with id - " + orderId + " not found");
-            logger.error(ex.toString());
-            return new ResponseEntity<>(null, HttpStatus.NOT_FOUND);
-        }
+        BeanUtils.copyProperties(order, persistentOrder, "id", "client");
+        Client client = orderService.findClientByOrderId(orderId);
+        persistentOrder.setClient(client);
+        orderService.save(persistentOrder);
+        return new ResponseEntity<>(persistentOrder, HttpStatus.OK);
     }
 
     @ApiOperation(value = "Create new order")
+    @BadRequestOrderPointcut
     @PostMapping
     @PreAuthorize(ACCESS_BY_ID_OR_NOT_USER_ROLE)
     public ResponseEntity<Order> createNewOrder(@ApiIgnore @AuthenticationPrincipal Client authClient,
@@ -142,12 +127,6 @@ public class OrderController {
                                                 @RequestBody @Valid Order order,
                                                 BindingResult bindingResult) {
         logger.info("Called createNewOrder");
-
-        if (bindingResult.hasErrors()) {
-            logger.info("Bad request on order information");
-            return new ResponseEntity<>(order, HttpStatus.BAD_REQUEST);
-        }
-
         Client client = clientService.findById(id);
         order.setClient(client);
         orderService.save(order);

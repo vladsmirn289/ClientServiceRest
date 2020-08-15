@@ -1,5 +1,7 @@
 package com.shop.ClientServiceRest.Controller;
 
+import com.shop.ClientServiceRest.Aop.BadRequestClientPointcut;
+import com.shop.ClientServiceRest.Aop.NoSuchClientPointcut;
 import com.shop.ClientServiceRest.Model.Client;
 import com.shop.ClientServiceRest.Model.ClientItem;
 import com.shop.ClientServiceRest.Model.Order;
@@ -25,7 +27,6 @@ import springfox.documentation.annotations.ApiIgnore;
 import javax.validation.Valid;
 import java.util.HashSet;
 import java.util.List;
-import java.util.NoSuchElementException;
 
 @RestController
 @RequestMapping("/api/clients")
@@ -68,20 +69,15 @@ public class ClientController {
     }
 
     @ApiOperation(value = "Show client by id")
+    @NoSuchClientPointcut
     @GetMapping("/{id}")
     @PreAuthorize(ACCESS_BY_ID_OR_NOT_USER_ROLE)
     public ResponseEntity<Client> clientById(@ApiIgnore @AuthenticationPrincipal Client authClient,
                                              @PathVariable("id") Long id) {
         logger.info("Called clientById method");
+        Client client = clientService.findById(id);
 
-        try {
-            Client client = clientService.findById(id);
-            return new ResponseEntity<>(client, HttpStatus.OK);
-        } catch (NoSuchElementException ex) {
-            logger.warn("Client with id " + id + " not found");
-            logger.error(ex.toString());
-            return new ResponseEntity<>(null, HttpStatus.NOT_FOUND);
-        }
+        return new ResponseEntity<>(client, HttpStatus.OK);
     }
 
     @ApiOperation(value = "Show client by login")
@@ -117,6 +113,8 @@ public class ClientController {
     }
 
     @ApiOperation(value = "Update exists client")
+    @NoSuchClientPointcut
+    @BadRequestClientPointcut
     @PutMapping("/{id}")
     @PreAuthorize(ACCESS_BY_ID_OR_NOT_USER_ROLE)
     public ResponseEntity<Client> updateClient(@ApiIgnore @AuthenticationPrincipal Client authClient,
@@ -124,59 +122,38 @@ public class ClientController {
                                                @RequestBody @Valid Client client,
                                                BindingResult bindingResult) {
         logger.info("Called updateClient method");
+        Client persistentClient = clientService.findById(id);
 
-        if (bindingResult.hasErrors()) {
-            logger.info("Bad request on update client information");
-            return new ResponseEntity<>(client, HttpStatus.BAD_REQUEST);
-        }
-
-        try {
-            Client persistentClient = clientService.findById(id);
-
-            BeanUtils.copyProperties(client, persistentClient, "id");
-            persistentClient.setNonLocked(client.isAccountNonLocked());
-            List<Order> orders = clientService.findOrdersByClientId(id);
-            List<ClientItem> basket = clientService.findBasketItemsByClientId(id);
-            persistentClient.setBasket(new HashSet<>(basket));
-            persistentClient.setOrders(new HashSet<>(orders));
-            clientService.save(persistentClient);
-            return new ResponseEntity<>(persistentClient, HttpStatus.OK);
-        } catch (NoSuchElementException ex) {
-            logger.warn("Client with id - " + id + " not found");
-            logger.error(ex.toString());
-            return new ResponseEntity<>(null, HttpStatus.NOT_FOUND);
-        }
+        BeanUtils.copyProperties(client, persistentClient, "id");
+        persistentClient.setNonLocked(client.isAccountNonLocked());
+        List<Order> orders = clientService.findOrdersByClientId(id);
+        List<ClientItem> basket = clientService.findBasketItemsByClientId(id);
+        persistentClient.setBasket(new HashSet<>(basket));
+        persistentClient.setOrders(new HashSet<>(orders));
+        clientService.save(persistentClient);
+        return new ResponseEntity<>(persistentClient, HttpStatus.OK);
     }
 
     @ApiOperation(value = "Create new client")
+    @BadRequestClientPointcut
     @PostMapping
     public ResponseEntity<Client> createNewClient(@RequestBody @Valid Client client,
                                                   BindingResult bindingResult) {
         logger.info("Called createNewClient method");
-
-        if (bindingResult.hasErrors()) {
-            logger.info("Bad request on update client information");
-            return new ResponseEntity<>(client, HttpStatus.BAD_REQUEST);
-        }
-
         clientService.save(client);
+
         return new ResponseEntity<>(client, HttpStatus.CREATED);
     }
 
     @ApiOperation(value = "Delete client")
+    @NoSuchClientPointcut
     @DeleteMapping("/{id}")
     @PreAuthorize(ACCESS_BY_ID_OR_NOT_USER_ROLE)
     public void deleteClient(@ApiIgnore @AuthenticationPrincipal Client authClient,
                              @PathVariable("id") Long id) {
         logger.info("Called deleteClient method");
-
-        try {
-            Client client = clientService.findById(id);
-            clientService.delete(client);
-        } catch (NoSuchElementException ex) {
-            logger.warn("Client with id - " + id + " not found");
-            logger.error(ex.toString());
-        }
+        Client client = clientService.findById(id);
+        clientService.delete(client);
     }
 
     @ApiOperation(value = "Show list of not completed orders", notes = "Only for managers or admins")

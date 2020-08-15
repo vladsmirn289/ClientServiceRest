@@ -1,5 +1,8 @@
 package com.shop.ClientServiceRest.Controller;
 
+import com.shop.ClientServiceRest.Aop.BadRequestClientItemPointcut;
+import com.shop.ClientServiceRest.Aop.NoSuchClientItemPointcut;
+import com.shop.ClientServiceRest.Aop.NoSuchClientPointcut;
 import com.shop.ClientServiceRest.Model.Client;
 import com.shop.ClientServiceRest.Model.ClientItem;
 import com.shop.ClientServiceRest.Model.Order;
@@ -24,7 +27,6 @@ import javax.validation.Valid;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
-import java.util.NoSuchElementException;
 
 @RestController
 @RequestMapping("/api/clients/{id}/basket")
@@ -50,37 +52,25 @@ public class BasketController {
     }
 
     @ApiOperation(value = "Show basket items by client")
+    @NoSuchClientPointcut
     @GetMapping
     @PreAuthorize(ACCESS_BY_ID_OR_NOT_USER_ROLE)
     public ResponseEntity<List<ClientItem>> getBasketByClientId(@ApiIgnore @AuthenticationPrincipal Client authClient,
                                                                 @PathVariable("id") Long id) {
         logger.info("Called getBasketByClientId method");
+        List<ClientItem> basket = clientService.findBasketItemsByClientId(id);
 
-        try {
-            List<ClientItem> basket = clientService.findBasketItemsByClientId(id);
-            return new ResponseEntity<>(basket, HttpStatus.OK);
-        } catch (NoSuchElementException ex) {
-            logger.warn("Client with id - " + id + " not found");
-            logger.error(ex.toString());
-            return new ResponseEntity<>(null, HttpStatus.NOT_FOUND);
-        }
+        return new ResponseEntity<>(basket, HttpStatus.OK);
     }
 
     @ApiOperation(value = "Calculate general price of items in the basket")
+    @NoSuchClientPointcut
     @GetMapping("/generalPrice")
     @PreAuthorize(ACCESS_BY_ID_OR_NOT_USER_ROLE)
     public ResponseEntity<Double> calcGeneralPriceOfBasket(@ApiIgnore @AuthenticationPrincipal Client authClient,
                                                            @PathVariable("id") Long id) {
         logger.info("Called calcGeneralPriceOfBasket method");
-
-        Client client;
-        try {
-            client = clientService.findById(id);
-        } catch (NoSuchElementException ex) {
-            logger.warn("Client with id - " + id + " not found");
-            logger.error(ex.toString());
-            return new ResponseEntity<>(null, HttpStatus.NOT_FOUND);
-        }
+        Client client = clientService.findById(id);
 
         List<ClientItem> basket = getBasketByClientId(client, id).getBody();
         if (basket == null) {
@@ -92,20 +82,13 @@ public class BasketController {
     }
 
     @ApiOperation(value = "Calculate general weight of items in the basket")
+    @NoSuchClientPointcut
     @GetMapping("/generalWeight")
     @PreAuthorize(ACCESS_BY_ID_OR_NOT_USER_ROLE)
     public ResponseEntity<Double> calcGeneralWeightOfBasket(@ApiIgnore @AuthenticationPrincipal Client authClient,
                                                             @PathVariable("id") Long id) {
         logger.info("Called calcGeneralWeightOfBasket method");
-
-        Client client;
-        try {
-            client = clientService.findById(id);
-        } catch (NoSuchElementException ex) {
-            logger.warn("Client with id - " + id + " not found");
-            logger.error(ex.toString());
-            return new ResponseEntity<>(null, HttpStatus.NOT_FOUND);
-        }
+        Client client = clientService.findById(id);
 
         List<ClientItem> basket = getBasketByClientId(client, id).getBody();
         if (basket == null) {
@@ -117,21 +100,14 @@ public class BasketController {
     }
 
     @ApiOperation(value = "Show item in the basket by id")
+    @NoSuchClientItemPointcut
     @GetMapping("/{item_id}")
     @PreAuthorize(ACCESS_BY_ID_OR_NOT_USER_ROLE)
     public ResponseEntity<ClientItem> getItemOfBasketById(@ApiIgnore @AuthenticationPrincipal Client authClient,
                                                           @PathVariable("id") Long id,
                                                           @PathVariable("item_id") Long itemId) {
         logger.info("Called getItemOfBasketById method");
-
-        ClientItem clientItem;
-        try {
-            clientItem = clientItemService.findById(itemId);
-        } catch (NoSuchElementException ex) {
-            logger.warn("ClientItem with id - " + itemId + " not found");
-            logger.error(ex.toString());
-            return new ResponseEntity<>(null, HttpStatus.NOT_FOUND);
-        }
+        ClientItem clientItem = clientItemService.findById(itemId);
 
         if (authClient.isManager() || authClient.isAdmin()) {
             return new ResponseEntity<>(clientItem, HttpStatus.OK);
@@ -152,6 +128,8 @@ public class BasketController {
     @ApiResponses(value = {
             @ApiResponse(code = 400, message = "Bad request (invalid clientItem information)")
     })
+    @BadRequestClientItemPointcut
+    @NoSuchClientItemPointcut
     @PutMapping("/{item_id}")
     @PreAuthorize(ACCESS_BY_ID_OR_NOT_USER_ROLE)
     public ResponseEntity<ClientItem> updateItemInBasket(@ApiIgnore @AuthenticationPrincipal Client authClient,
@@ -161,28 +139,19 @@ public class BasketController {
                                                          BindingResult bindingResult) {
         logger.info("Called updateItemInBasket method");
 
-        if (bindingResult.hasErrors()) {
-            logger.info("Bad request on update clientItem information");
-            return new ResponseEntity<>(clientItem, HttpStatus.BAD_REQUEST);
-        }
+        ClientItem persistentItem = clientItemService.findById(itemId);
+        BeanUtils.copyProperties(clientItem, persistentItem, "id");
+        clientItemService.save(persistentItem);
 
-        try {
-            ClientItem persistentItem = clientItemService.findById(itemId);
-
-            BeanUtils.copyProperties(clientItem, persistentItem, "id");
-            clientItemService.save(persistentItem);
-            return new ResponseEntity<>(persistentItem, HttpStatus.OK);
-        } catch (NoSuchElementException ex) {
-            logger.warn("ClientItem with id - " + itemId + " not found");
-            logger.error(ex.toString());
-            return new ResponseEntity<>(null, HttpStatus.NOT_FOUND);
-        }
+        return new ResponseEntity<>(persistentItem, HttpStatus.OK);
     }
 
     @ApiOperation(value = "Create new item and place it in the basket")
     @ApiResponses(value = {
             @ApiResponse(code = 400, message = "Bad request (invalid clientItem information)")
     })
+    @BadRequestClientItemPointcut
+    @NoSuchClientPointcut
     @PostMapping
     @PreAuthorize(ACCESS_BY_ID_OR_NOT_USER_ROLE)
     public ResponseEntity<ClientItem> addItemToBasket(@ApiIgnore @AuthenticationPrincipal Client authClient,
@@ -191,11 +160,6 @@ public class BasketController {
                                                       BindingResult bindingResult) {
         logger.info("Called addItemToBasket method");
         Client client = clientService.findById(id);
-
-        if (bindingResult.hasErrors()) {
-            logger.info("Bad request on clientItem information");
-            return new ResponseEntity<>(clientItem, HttpStatus.BAD_REQUEST);
-        }
 
         List<ClientItem> basket = clientService.findBasketItemsByClientId(id);
         List<Order> orders = clientService.findOrdersByClientId(id);
@@ -208,6 +172,7 @@ public class BasketController {
     }
 
     @ApiOperation(value = "Delete basket item by id")
+    @NoSuchClientPointcut
     @DeleteMapping("/{item_id}")
     @PreAuthorize(ACCESS_BY_ID_OR_NOT_USER_ROLE)
     public void deleteItemFromBasketById(@ApiIgnore @AuthenticationPrincipal Client authClient,
