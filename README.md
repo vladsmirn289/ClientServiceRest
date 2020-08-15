@@ -42,7 +42,7 @@ The diagram of the package structure:
                     *   [Jackson] (Serializers and deserializers for a client and item classes)
                     *   [Model] (JPA entities)
                     *   [Repository] (Spring Data repos)
-                    *   [Service] (Service for finding client by a login)
+                    *   [Service] (Service logic, that delegates work to the repos)
                     *   [ClientServiceRestApp.java] (Main class for, Spring Boot)
             *   [resources]
                 *   [application.properties] (Stores various properties of the database, JWT and swagger)
@@ -62,7 +62,7 @@ The diagram of the package structure:
                 *   [application.properties][application-test.properties] (Various properties for test environment)
 
 ## License
-Authentication service is the service released under version 2.0 of the [Apache License](https://www.apache.org/licenses/LICENSE-2.0).
+Client service is the service released under version 2.0 of the [Apache License](https://www.apache.org/licenses/LICENSE-2.0).
 
 [goods-shop-rest]: https://github.com/vladsmirn289/GoodsShopRest
 [postman]: https://www.postman.com/
